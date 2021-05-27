@@ -1,0 +1,12 @@
+*.bbl
+*.blg
+*.dvi
+*.log
+*.out
+paper-misspec.pdf
+paper-misspec-supp.pdf
+*.synctex.gz
+*.aux
+*.tex.bak
+natbib.bst
+natbib.sty
