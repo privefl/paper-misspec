@@ -94,6 +94,8 @@
 
 \section*{Results}
 
+\subsection{Misspecification of GWAS sample sizes}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -107,11 +109,12 @@
 
 \subsection*{New implementation of lassosum in bigsnpr}
 
-From \cite{mak2017polygenic}, the solution from lassosum can be obtained by iteratively updating 
+Instead of using a regularized version of the correlation matrix $R$ parameterized by $s$, $R_s = (1 - s) R + s I$, we use $R_{\delta} = R + \delta I$, which makes it clearer that lassosum is also using L2-regularization (therefore elastic-net). 
+Then, from \cite{mak2017polygenic}, the solution from lassosum can be obtained by iteratively updating 
 \[
 \beta_j^{(t)} =
 \begin{cases}
-\text{sign}\left(u_j^{(t)}\right) \left(\left|u_j^{(t)}\right| - \lambda\right) / \left(\widetilde{X}_j^T \widetilde{X}_j + s\right) & \text{if } \left|u_j^{(t)}\right| > \lambda ~, \\
+\text{sign}\left(u_j^{(t)}\right) \left(\left|u_j^{(t)}\right| - \lambda\right) / \left(\widetilde{X}_j^T \widetilde{X}_j + \delta\right) & \text{if } \left|u_j^{(t)}\right| > \lambda ~, \\
 0 & \text{otherwise.}
 \end{cases}
 \]
@@ -119,21 +122,21 @@ where
 \[
 u_j^{(t)} = r_j - \widetilde{X}_j^T \left( \widetilde{X} \beta^{(t-1)} - \widetilde{X}_j \beta_j^{(t-1)} \right) ~.
 \]
-Following notations from \cite{prive2020ldpred2} and denoting $\widetilde{X} = \sqrt{\frac{1-s}{n-1}} C_n G S^{-1}$, when $G$ is the genotype matrix, $C_n$ is the centering matrix and $S$ is the diagonal matrix of standard deviations of $G$, then $\widetilde{X}_j^T \widetilde{X} = (1-s) R_{j,.} = (1-s) R_{.,j}^T$ where $R$ is the correlation matrix between variants.
-Then $\widetilde{X}_j^T \widetilde{X}_j + s = 1$ and
+Following notations from \cite{prive2020ldpred2} and denoting $\widetilde{X} = \frac{1}{\sqrt{n-1}} C_n G S^{-1}$, where $G$ is the genotype matrix, $C_n$ is the centering matrix and $S$ is the diagonal matrix of standard deviations of the columns of $G$.
+Then $\widetilde{X}_j^T \widetilde{X} = R_{j,.} = R_{.,j}^T$, $\widetilde{X}_j^T \widetilde{X}_j = 1$ and
 \[
-u_j^{(t)} = \widehat{\beta}_j + (1-s) \left( \beta_j^{(t-1)} - R_{.,j}^T \beta^{(t-1)} \right) ~,
+u_j^{(t)} = \beta_j^{(t-1)} + \widehat{\beta}_j - R_{.,j}^T \beta^{(t-1)} ~,
 \]
 where $r_j = \widehat{\beta}_j =  \dfrac{\widehat{\gamma}_j}{\sqrt{n_j ~ \text{se}(\widehat{\gamma}_j)^2 + \widehat{\gamma}_j^2}}$ and $\widehat{\gamma}_j$ is the GWAS effect of variant $j$ and $n$ is the GWAS sample size \cite[]{mak2017polygenic,prive2021high}.
 Then the most time-consuming part is computing $R_{.,j}^T \beta^{(t-1)}$.
 To make this faster, instead of computing $R_{.,j}^T \beta^{(t-1)}$ at each iteration ($j$ and $t$), we can start with a vector with only 0s initially (for all $j$) since $\beta^{(0)} \equiv 0$, and then updating this vector when $\beta_j^{(t)} \neq \beta_j^{(t-1)}$ only. Note that only positions $k$ for which $R_{k,j} \neq 0$ must be updated in this vector $R_{.,j}^T \beta^{(t-1)}$. 
 
-In this new implementation of the lassosum model, the input parameters are the correlation matrix $R$, the GWAS summary statistics ($\widehat{\gamma}_j$, $\text{se}(\widehat{\gamma}_j)$ and $n_j$), and the two hyper-parameters $\lambda$ and $s$. 
+In this new implementation of the lassosum model, the input parameters are the correlation matrix $R$, the GWAS summary statistics ($\widehat{\gamma}_j$, $\text{se}(\widehat{\gamma}_j)$ and $n_j$), and the two hyper-parameters $\lambda$ and $\delta$. 
 Therefore, except for the hyper-parameters, this is the exact same input as for LDpred2 \cite[]{prive2020ldpred2}.
-For $s$, we now try $\{0.1, 0.2, \dots, 1.0\}$ by default, instead of only $\{0.2, 0.5, 0.8, 1.0\}$.
+We try $\delta \in \{0.001, 0.005, 0.02, 0.1, 0.6, 3\}$ by default in lassosum2, instead of $s \in \{0.2, 0.5, 0.8, 1.0\}$ in lassosum.
 For $\lambda$, the default in lassosum uses a sequence of 20 values equally spaced on a log scale between 0.1 and 0.001; we now use a sequence between $\lambda_0$ and $\lambda_0 / 100$ by default in lassosum2, where $\lambda_0 = \max_j \left|\widehat{\beta}_j\right|$ is the minimum $\lambda$ for which no variable enter the model because the L1-regularization is too strong.
-Note that we do not provide an ``auto'' version using pseudo-validation (as in \cite{mak2017polygenic}) as we have not found it to be very robust (Figures \ref{fig:auc} and \ref{fig:pseudoval}).
-Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse correlation matrix which assumes that variants further away than 3 cM are not correlated, and therefore we do not require splitting the genome into independent LD blocks anymore (as in lassosum).
+Note that we do not provide an ``auto'' version using pseudo-validation (as in \cite{mak2017polygenic}) as we have not found it to be very robust (Figure \ref{fig:pseudoval} [TODO: REGENERATE THIS FIG AND CODE]).
+Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse correlation matrix which assumes that variants further away than 3 cM are not correlated, and therefore we do not require splitting the genome into independent LD blocks anymore (as is required in lassosum).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
