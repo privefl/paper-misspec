@@ -35,14 +35,15 @@
 	author = {Priv{\'e}, Florian and Arbel, Julyan and Vilhj{\'a}lmsson, Bjarni J},
 	title = "{{LDpred2}: better, faster, stronger}",
 	journal = {Bioinformatics},
+	volume = {36},
+	number = {22-23},
+	pages = {5424-5431},
 	year = {2020},
 	month = {12},
-	abstract = "{Polygenic scores have become a central tool in human genetics research. LDpred is a popular method for deriving polygenic scores based on summary statistics and a matrix of correlation between genetic variants. However, LDpred has limitations that may reduce its predictive performance.Here, we present LDpred2, a new version of LDpred that addresses these issues. We also provide two new options in LDpred2: a ‘sparse’ option that can learn effects that are exactly 0, and an ‘auto’ option that directly learns the two LDpred parameters from data. We benchmark predictive performance of LDpred2 against the previous version on simulated and real data, demonstrating substantial improvements in robustness and predictive accuracy compared to LDpred1. We then show that LDpred2 also outperforms other polygenic score methods recently developed, with a mean AUC over the 8 real traits analyzed here of 65.1\\%, compared to 63.8\\% for lassosum, 62.9\\% for PRS-CS and 61.5\\% for SBayesR. Note that LDpred2 provides more accurate polygenic scores when run genome-wide, instead of per chromosome.LDpred2 is implemented in R package bigsnpr.Supplementary data are available at Bioinformatics online.}",
 	issn = {1367-4803},
 	doi = {10.1093/bioinformatics/btaa1029},
 	url = {https://doi.org/10.1093/bioinformatics/btaa1029},
-	note = {btaa1029},
-	eprint = {https://academic.oup.com/bioinformatics/advance-article-pdf/doi/10.1093/bioinformatics/btaa1029/35390314/btaa1029.pdf},
+	eprint = {https://academic.oup.com/bioinformatics/article-pdf/36/22-23/5424/36855826/btaa1029\_supplementary\_data.pdf},
 }
 
 @article{bengtsson2020unifying,
@@ -63,17 +64,14 @@
 }
 
 @article{prive2020efficient,
-	author = {Priv{\'e}, Florian and Luu, Keurcien and Blum, Michael G B and McGrath, John J and Vilhj{\'a}lmsson, Bjarni J},
-	title = "{Efficient toolkit implementing best practices for principal component analysis of population genetic data}",
-	journal = {Bioinformatics},
-	year = {2020},
-	month = {05},
-	abstract = "{Principal Component Analysis (PCA) of genetic data is routinely used to infer ancestry and control for population structure in various genetic analyses. However, conducting PCA analyses can be complicated and has several potential pitfalls. These pitfalls include (1) capturing Linkage Disequilibrium (LD) structure instead of population structure, (2) projected PCs that suffer from shrinkage bias, (3) detecting sample outliers, and (4) uneven population sizes. In this work, we explore these potential issues when using PCA, and present efficient solutions to these. Following applications to the UK Biobank and the 1000 Genomes project datasets, we make recommendations for best practices and provide efficient and user-friendly implementations of the proposed solutions in R packages bigsnpr and bigutilsr.for example, we find that PC19 to PC40 in the UK Biobank capture complex LD structure rather than population structure. Using our automatic algorithm for removing long-range LD regions, we recover 16 PCs that capture population structure only. Therefore, we recommend using only 16-18 PCs from the UK Biobank to account for population structure confounding. We also show how to use PCA to restrict analyses to individuals of homogeneous ancestry. Finally, when projecting individual genotypes onto the PCA computed from the 1000 Genomes project data, we find a shrinkage bias that becomes large for PC5 and beyond. We then demonstrate how to obtain unbiased projections efficiently using bigsnpr.Overall, we believe this work would be of interest for anyone using PCA in their analyses of genetic data, as well as for other omics data.R packages bigsnpr and bigutilsr can be installed from either CRAN or GitHub (see https://github.com/privefl/bigsnpr). A tutorial on the steps to perform PCA on 1000G data is available at https://privefl.github.io/bigsnpr/articles/bedpca.html. All code used for this paper is available at https://github.com/privefl/paper4-bedpca/tree/master/code.Supplementary data are available at Bioinformatics online.}",
-	issn = {1367-4803},
-	doi = {10.1093/bioinformatics/btaa520},
-	url = {https://doi.org/10.1093/bioinformatics/btaa520},
-	note = {btaa520},
-	eprint = {https://academic.oup.com/bioinformatics/advance-article-pdf/doi/10.1093/bioinformatics/btaa520/33221772/btaa520.pdf},
+	title={Efficient toolkit implementing best practices for principal component analysis of population genetic data},
+	author={Priv{\'e}, Florian and Luu, Keurcien and Blum, Michael GB and McGrath, John J and Vilhj{\'a}lmsson, Bjarni J},
+	journal={Bioinformatics},
+	volume={36},
+	number={16},
+	pages={4449--4457},
+	year={2020},
+	publisher={Oxford University Press}
 }
 
 @article{ge2019polygenic,

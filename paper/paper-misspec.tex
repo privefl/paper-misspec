@@ -96,6 +96,19 @@
 
 \subsection*{Misspecification of GWAS sample sizes}
 
+We design simulations where variants have different GWAS sample sizes, which is often the case when meta-analyzing GWAS from multiple cohorts without the same genome coverage.
+Using 20,000 variants from chromosome 22 (Methods), we simulate quantitative phenotypes assuming an heritability of 20\% and 2000 causal variants.
+For half of the variants, we use 100\% of 300,000 individuals for GWAS, but use only 80\% for one quarter of them and 60\% for the remaining quarter. 
+We then run C+T, LDpred2-inf, LDpred2(-grid), LDpred2-auto, lassosum, lassosum2, PRS-CS and SBayesR by using either the true per-variant GWAS sample size, or the total sample size. 
+We do not show results for SBayesR because it always diverged and for PRS-CS because the overlap with the LD reference they provide is too small.
+Averaged over 10 simulations, when providing true per-variant GWAS sample sizes, squared correlations (in \%) between the polygenic scores and the simulated phenotypes are of [TODO: COMPLETE] (Figure \ref{fig:simu-misN}).
+Results for LDpred2-auto are the same as with LDpred2-inf, as it always converges to an infinitesimal model (p = 1) in these simulations.
+Note that C+T does not use this sample size information.
+For methods that use the per-variant GWAS sample sizes, predictive performance slightly decreases [TODO: REPLACE NUMBERS] from 17.5 to 17.4 for lassosum, from 18.0 to 17.5 for lassosum2, but dramatically decreases for LDpred2 with new values of 11.5 for LDpred2-grid, 5.7 for LDpred2-auto and 6.8 for LDpred2-inf (Figure \ref{fig:simu-misN}).
+Therefore, this extreme simulation scenario shows that LDpred2 can be sensitive to GWAS sample size misspecification, whereas lassosum (and lassosum2) seems little affected by this.
+
+[TODO: COMPLETE WITH LOOK AT EACH OF THEM]
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
