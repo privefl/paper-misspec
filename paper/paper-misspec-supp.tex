@@ -76,6 +76,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\FloatBarrier
+
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.8\textwidth]{simu-qc-plot}}
 	\caption{Quality control plot, as proposed in \cite{prive2020ldpred2}, for the simulations with sample size misspecification. The standard deviations are derived from the summary statistics assuming the same global GWAS sample size for all variants (300,000).}
@@ -90,6 +92,39 @@
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
+\begin{figure}[p]
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{lassosum2-mis-maxN}
+	\end{subfigure}\vspace{2em}
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{lassosum2-mis-imputeN}
+	\end{subfigure}
+	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters ($\lambda$ and $\delta$) for lassosum2 in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N (cf.\ figure \ref{fig:simu-misN}).  Missing points represent models that were detected as divergent.}
+	\label{fig:lassosum2-misN}
+\end{figure}
+
+
+\begin{figure}[p]
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{ldpred2-mis-maxN}
+	\end{subfigure}\vspace{2em}
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{ldpred2-mis-imputeN}
+	\end{subfigure}
+	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters (the SNP heritability h2 and the proportion of causal variants p) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N (cf.\ figure \ref{fig:simu-misN}). Note that the small h2 values (0.002, 0.02, 0.06) were not considered in the results of figure \ref{fig:simu-misN}. Missing points represent models that were detected as divergent.}
+	\label{fig:ldpred2-misN}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
 
 \begin{figure}[htb]
 	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
