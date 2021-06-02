@@ -85,7 +85,7 @@
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN}}
 	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true" when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
 	\label{fig:simu-misN}
@@ -126,20 +126,61 @@
 
 \FloatBarrier
 
-\begin{figure}[htb]
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{compare-sd}}
+	\caption{Standard deviations from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. \label{fig:compare-sd}}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{compare-beta}}
+	\caption{GWAS effect sizes from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. \label{fig:compare-beta}}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{compare-beta-se}}
+	\caption{Standard errors of GWAS effect sizes from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. \label{fig:compare-beta-se}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{compare-info}}
+	\caption{INFO scores reported in the UK Biobank vs.\ INFO scores recomputed from the subset of 362,307 European individuals used in this paper. \label{fig:compare-info}}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
+	\caption{Results for the simulations using dosage data. The GWAS sample size is ``true" when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
+	\label{fig:simu-info}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
+\begin{figure}[p]
 	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
-	\caption{Histogram of the imputation INFO scores of the 20,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
+	\caption{Histogram of the imputation INFO scores of the 40,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{compare-mult-imp}}
+	\caption{GWAS effect sizes and Z-scores from imputed dosages versus from multiple imputation (MI, 10 draws used), ``corrected'' and colored by INFO scores. This shows only one tenth of the simulated variants, because MI takes some time to run. \label{fig:compare-mi}}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\clearpage
 
-%\begin{figure}[h]
-%	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
-%	\caption{For one simulation, scores from validation vs.\ scores from pseudo-validation as described in \cite{mak2017polygenic} using either correlations (the default in lassosum) or p-values for computing local false discovery rates.}
-%	\label{fig:pseudoval}
-%\end{figure}
+\FloatBarrier
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
+	\caption{For one simulation, scores from validation vs.\ scores from pseudo-validation as described in \cite{mak2017polygenic} using either correlations (the default in lassosum) or p-values when computing local false discovery rates.}
+	\label{fig:pseudoval}
+\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
