@@ -64,7 +64,7 @@
 \begin{document}
 
 
-\title{Overcoming multiple sources of misspecification\\in GWAS summary statistics}
+\title{Identifying and correcting multiple sources of misspecification\\in GWAS summary statistics}
 \author{Florian Priv\'e,$^{\text{1,}*}$ Timothy S. H. Mak,$^{\text{2}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,3}}$}
 
 \date{~ }
@@ -125,6 +125,34 @@ This is the second correction of summary statistics we try in the simulations be
 Using 40,000 variants from chromosome 22, we simulate quantitative phenotypes assuming an heritability of 20\% and 2000 causal variants using the ``true'' dataset (cf.\ Methods section ``Data for simulations'').
 We run GWAS on the dosage dataset and use these summary statistics to run LDpred2 and lassosum2 with either no correction of the summary statistics, or with one of the two described above.
 The LD reference used by LDpred2 and lassosum2 is computed from the validation set using the ``true'' dataset.
+For lassosum2 and LDpred2 which tune parameters using validation set and can possibly use strong regularization, the two corrections just slighly improve predictive performance in these simulations (Figure \ref{fig:simu-info}).
+Correction ``sqrt\_info'', which is equivalent to postprocessing PGS effects by $\sqrt{\text{INFO}}$ slighly improves predictive performance for all methods, but correction ``info'' (using $\hat{\beta}_j^{imp} \cdot \text{INFO}_j$  and $N \cdot \text{INFO}_j$) provides much better predictive performance for LDpred2-auto, with a mean squared correlation of 15.4\% compared to 12.9\% with no correction and 13.3\% with correction ``sqrt\_info'' (Figure \ref{fig:simu-info}).
+
+
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
+	\caption{Results for the simulations using dosage data. Correction ``sqrt\_info'' corresponds to using $\hat{\beta}_j^{imp} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\beta}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$.
+	Correction ``info'' corresponds to using $\hat{\beta}_j^{imp} \cdot \text{INFO}_j$  and $N \cdot \text{INFO}_j$.}
+	\label{fig:simu-info}
+\end{figure}
+
+\subsection*{Application to breast cancer summary statistics}
+
+Breast cancer summary statistics are interesting because they come from two mega analyses [TODO: VERIF] \cite[]{michailidou2013large,michailidou2017association}, which means there is some larger precision in the parameters reported, such as the INFO scores and the sample sizes.
+INFO scores for the OncoArray summary statistics (after having restricted to HapMap3 variants) are globally very good (Figure \ref{fig:hist-info-brca}), but the ones from iCOGS are a bit worse (Figure \ref{fig:hist-info-brca2}), probably because they are older.
+For the OncoArray summary statistics, we first compare the standard deviations inferred from the reported allele frequencies (i.e.\ $\sqrt{2 f (1 - f)}$ where $f$ is the allele frequency, and denoted as sd\_af) versus the ones inferred from the GWAS summary statistics (Equation \eqref{eq:approx-sd-log}, and denoted as sd\_ss).
+When coloring by INFO scores, we see a clear trend with sd\_ss being lower and lower than sd\_af as INFO decreases.
+Using $\text{sd\_ss} / \sqrt{\text{INFO}}$ instead, we get a very good fit with sd\_af, except for some variants of chromosome 6 and 8. Most of these outlier variants are in regions 25-33 Mbp of chromosome 6 and 8-12 Mbp of chromosome 8 (Figure \ref{fig:hist-bad-pos}), which are two known long-range LD regions \cite[]{price2008long}.
+We hypothesize that this is due to using principal components (PCs) that capture LD structure as covariates in GWAS \cite[]{prive2020efficient}.
+To validate this hypothesis, we simulate a phenotype using HapMap3 variants of chromosome 6 for 10,000 individuals from the UK Biobank, then we run GWAS with or without PC19 as covariate. PC19 from the UK Biobank was previously reported to capture LD structure in region 70-91 Mbp of chromsome 6 \cite[]{prive2020efficient}.
+In these simulations, the same bias as in figure \ref{fig:hist-bad-pos}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), therefore confirming our hypothesis.
+For the iCOGS summary statistics, we also see a clear trend with sd\_ss being lower and lower than sd\_af as INFO decreases, but they do not have issues with PCs  (Figure \ref{fig:brca_icogs_qc}).
+
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.95\textwidth]{brca_onco_qc}}
+	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\label{fig:brca_onco_qc}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -144,7 +172,7 @@ To get a set of genetically homogeneous individuals, we compute a robust Mahalan
 This results in 362,307 individuals.
 We sample 300,000 individuals to form a training set (e.g.\ to run GWAS), 10,000 individuals to form a validation set (to tune hyper-parameters), and use the remaining 52,307 individuals to form a test set (to evaluate final predictive models).
 
-Among genetic variants with a minor allele frequency larger than 0.01 and an imputation INFO score larger than 0.4, we sample 40,000 of them according to the inverse of the INFO score density so that they have varying levels of imputation accuracy (Figure \ref{fig:hist-info}).
+Among genetic variants with a minor allele frequency larger than 0.01 and an imputation INFO score larger than 0.4 (as reported in the UK Biobank), we sample 40,000 of them according to the inverse of the INFO score density so that they have varying levels of imputation accuracy (Figure \ref{fig:hist-info}).
 We read the UK Biobank data into two different datasets using function \texttt{snp\_readBGEN} from R package bigsnpr \cite[]{prive2017efficient}, one by reading the BGEN data at random according to imputation probabilities, and another one reading it as dosages (i.e.\ expected values according to imputation probabilities).
 The first dataset is used as what could be the real genotype calls and the second dataset as what would be its imputed version; this technique was used in \cite{prive2019making}.
 

@@ -87,7 +87,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN}}
-	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true" when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
+	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
 	\label{fig:simu-misN}
 \end{figure}
 
@@ -148,10 +148,48 @@
 	\caption{INFO scores reported in the UK Biobank vs.\ INFO scores recomputed from the subset of 362,307 European individuals used in this paper. \label{fig:compare-info}}
 \end{figure}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
-	\caption{Results for the simulations using dosage data. The GWAS sample size is ``true" when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
-	\label{fig:simu-info}
+	\centerline{\includegraphics[width=0.8\textwidth]{compare-mult-imp}}
+	\caption{GWAS effect sizes and Z-scores from imputed dosages versus from multiple imputation (MI, 10 draws used), ``corrected'' and colored by INFO scores. This shows only one tenth of the simulated variants, because MI takes some time to run. \label{fig:compare-mi}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{brca_onco_hist_info}}
+	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. \label{fig:hist-info-brca}}
+\end{figure}
+
+\begin{figure}[p]
+\centerline{\includegraphics[width=0.8\textwidth]{brca_onco_hist_info}}
+\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the iCOGS GWAS summary statistics for breast cancer \cite[]{michailidou2013large}. \label{fig:hist-info-brca2}}
+\end{figure}
+
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.8\textwidth]{hist_bad_pos}}
+	\caption{Histogram of the positions of outlier variants from Figure 2B [TODO: VERIF NUMBER AT THE END] in the main text. \label{fig:hist-bad-pos}}
+\end{figure}
+
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.85\textwidth]{gwas_bad_pc}}
+	\caption{Standard deviations inferred from the simulated GWAS summary statistics (\textbf{A:} with no covariate; \textbf{B:} with PC19 from the UK Biobank as covariate) versus the ones inferred from the allele frequencies. Only HapMap3 variants from chromosome 6 are represented.}
+	\label{fig:gwas_bad_pc}
+\end{figure}
+
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.95\textwidth]{brca_icogs_qc}}
+	\caption{Standard deviations inferred from the iCOGS breast cancer GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\label{fig:brca_icogs_qc}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -161,13 +199,6 @@
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
 	\caption{Histogram of the imputation INFO scores of the 40,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
-\end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{compare-mult-imp}}
-	\caption{GWAS effect sizes and Z-scores from imputed dosages versus from multiple imputation (MI, 10 draws used), ``corrected'' and colored by INFO scores. This shows only one tenth of the simulated variants, because MI takes some time to run. \label{fig:compare-mi}}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
