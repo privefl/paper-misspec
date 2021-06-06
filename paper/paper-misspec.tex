@@ -138,8 +138,10 @@ Correction ``sqrt\_info'', which is equivalent to postprocessing PGS effects by 
 
 \subsection*{Application to breast cancer summary statistics}
 
-Breast cancer summary statistics are interesting because they come from two mega analyses [TODO: VERIF] \cite[]{michailidou2013large,michailidou2017association}, which means there is some larger precision in the parameters reported, such as the INFO scores and the sample sizes.
-INFO scores for the OncoArray summary statistics (after having restricted to HapMap3 variants) are globally very good (Figure \ref{fig:hist-info-brca}), but the ones from iCOGS are a bit worse (Figure \ref{fig:hist-info-brca2}), probably because they are older.
+[TALK ABOUT THE SAMPLE SIZES BEFORE/AFTER QC?]
+
+Breast cancer summary statistics are interesting because they include results from two mega analyses \cite[]{michailidou2013large,michailidou2015genome,michailidou2017association}, which means there is some larger precision in the parameters reported, such as the INFO scores and the sample sizes.
+INFO scores for the OncoArray summary statistics (after having restricted to HapMap3 variants) are globally very good (Figure \ref{fig:hist-info-brca}), but the ones from iCOGS are a bit worse (Figure \ref{fig:hist-info-brca2}), probably because the chip used included around 200K variants only, compared to more than 500K variants for the OncoArray.
 For the OncoArray summary statistics, we first compare the standard deviations inferred from the reported allele frequencies (i.e.\ $\sqrt{2 f (1 - f)}$ where $f$ is the allele frequency, and denoted as sd\_af) versus the ones inferred from the GWAS summary statistics (Equation \eqref{eq:approx-sd-log}, and denoted as sd\_ss).
 When coloring by INFO scores, we see a clear trend with sd\_ss being lower and lower than sd\_af as INFO decreases.
 Using $\text{sd\_ss} / \sqrt{\text{INFO}}$ instead, we get a very good fit with sd\_af, except for some variants of chromosome 6 and 8. Most of these outlier variants are in regions 25-33 Mbp of chromosome 6 and 8-12 Mbp of chromosome 8 (Figure \ref{fig:hist-bad-pos}), which are two known long-range LD regions \cite[]{price2008long}.
@@ -148,10 +150,25 @@ To validate this hypothesis, we simulate a phenotype using HapMap3 variants of c
 In these simulations, the same bias as in figure \ref{fig:hist-bad-pos}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), therefore confirming our hypothesis.
 For the iCOGS summary statistics, we also see a clear trend with sd\_ss being lower and lower than sd\_af as INFO decreases, but they do not have issues with PCs  (Figure \ref{fig:brca_icogs_qc}).
 
+[ALSO ADD THE GWAS META-ANALYSIS NEFF \textasciitilde20K?]
+
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{brca_onco_qc}}
 	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 	\label{fig:brca_onco_qc}
+\end{figure}
+
+Therefore, having the INFO score enables both to correct for it in the QC step to be able to pinpoint possible other problems, and possibly to correct for it and improve prediction as shown in the simulations before.
+We try this for the two breast cancer summary statistics. We first compare the standard QC proposed in \cite{prive2020ldpred2} (which ends up filtering on MAF here, which we call ``qc1''). We then also filter out the two long-range LD regions of chromosome 6 and 8 for the OncoArray summary statistics and remove around 500 variants when filtering on differences of MAFs between summary statistics and the validation dataset.
+As for the correction for the INFO scores, we use $\hat{\beta}_j^{imp} \cdot \text{INFO}_j$ and $N \cdot \text{INFO}_j$ as we have shown to perform well in simulations.
+Although results for both QC used are very similar, correcting for the INFO score really improves prediction, especially for LDpred2-auto [TODO: NUMBERS] (Figure \ref{fig:res_brca}).
+
+[SHOULD JUST REPORT ONE PREDICTION INSTEAD OF ALL? THEN MAKE A TABLE?]
+
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.95\textwidth]{res_brca}}
+	\caption{AUC (for \textit{all} models) for predicting breast cancer in the UK Biobank when using either the OncoArray or the iCOGS summary statistics.}
+	\label{fig:res_brca}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
