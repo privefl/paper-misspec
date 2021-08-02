@@ -64,15 +64,16 @@
 \begin{document}
 
 
-\title{Identifying and correcting multiple sources of misspecification\\in GWAS summary statistics}
-\author{Florian Priv\'e,$^{\text{1,}*}$ Timothy S. H. Mak,$^{\text{2}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,3}}$}
+\title{Identifying and correcting multiple sources of misspecification\\in GWAS summary statistics for prediction}
+\author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ Timothy S. H. Mak,$^{\text{3}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,4}}$}
 
 \date{~ }
 \maketitle
 
 \noindent$^{\text{\sf 1}}$National Centre for Register-Based Research, Aarhus University, Aarhus, 8210, Denmark. \\
-\noindent$^{\text{\sf 2}}$Fano Labs, Hong Kong \\
-\noindent$^{\text{\sf 3}}$Bioinformatics Research Centre, Aarhus University, Aarhus, 8000, Denmark. \\
+\noindent$^{\text{\sf 2}}$Univ.\ Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK, Grenoble, 38000, France. \\
+\noindent$^{\text{\sf 3}}$Fano Labs, Hong Kong. \\
+\noindent$^{\text{\sf 4}}$Bioinformatics Research Centre, Aarhus University, Aarhus, 8000, Denmark. \\
 \noindent$^\ast$To whom correspondence should be addressed.\\
 
 \noindent Contact: \url{florian.prive.21@gmail.com}
@@ -103,31 +104,41 @@ We then run C+T, LDpred2-inf, LDpred2(-grid), LDpred2-auto, lassosum, lassosum2,
 We do not show results for SBayesR because it always diverged and for PRS-CS because the overlap with the LD reference they provide is too small.
 Averaged over 10 simulations, when providing true per-variant GWAS sample sizes, squared correlations (in \%) between the polygenic scores and the simulated phenotypes are of [TODO: COMPLETE] (Figure \ref{fig:simu-misN}).
 Note that C+T does not use this sample size information.
-For methods that use the per-variant GWAS sample sizes, predictive performance slightly decreases [TODO: REPLACE NUMBERS] from 17.5 to 17.4 for lassosum, from 18.0 to 17.5 for lassosum2, but dramatically decreases for LDpred2 with new values of 11.5 for LDpred2-grid, 5.7 for LDpred2-auto and 6.8 for LDpred2-inf (Figure \ref{fig:simu-misN}).
+When using the total GWAS sample size instead of the per-variant sample sizes, predictive performance slightly decreases [TODO: REPLACE NUMBERS] from 17.5 to 17.4 for lassosum, from 18.0 to 17.5 for lassosum2, but dramatically decreases for LDpred2 with new values of 11.5 for LDpred2-grid, 5.7 for LDpred2-auto and 6.8 for LDpred2-inf (Figure \ref{fig:simu-misN}).
 Therefore, this extreme simulation scenario shows that LDpred2 can be sensitive to GWAS sample size misspecification, whereas lassosum (and lassosum2) seems little affected by this.
+
+\begin{figure}[h]
+	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN}}
+	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
+	\label{fig:simu-misN}
+\end{figure}
 
 We then conduct further investigations to explain results of figure \ref{fig:simu-misN}.
 First, the reason why results for LDpred2-auto are the same as with LDpred2-inf is because it always converges to an infinitesimal model (p = 1) in these simulations.
 Second, for lassosum2, results for a grid of parameters (over $\lambda$ and $\delta$) and quite smooth compared to LDpred2 (Figures \ref{fig:lassosum2-misN} and \ref{fig:ldpred2-misN}). Results slightly improve globally for both lassosum2 and LDpred2 when using imputed instead of maximum GWAS sample sizes.
 Finally, in these simulations with misspecified sample sizes, it seems highly beneficial to use a small value for the SNP heritability hyper-parameter in LDpred2, e.g.\ a value of 0.02 or even 0.002 when the true value is 0.2 (Figure \ref{fig:ldpred2-misN}). 
-We recall that using a small value for this hyper-parameter induces a larger regularization on the effect sizes, and this benefits LDpred2 even when using imputed sample sizes. 
+We recall that using a small value for this hyper-parameter induces a larger regularization (shrinkage) on the effect sizes, and this benefits LDpred2 even when using imputed sample sizes. 
+
+[NEED TO TALK ABOUT THE LD TRANSFO SOMEWHERE + NEW METHODS]
+
 
 \subsection*{GWAS using expected genotypes from imputation}
 
 When using the expected genotypes from imputation (dosages), their standard deviations are usually lower than the expected value under Hardy-Weinberg equilibrium (cf.\ Methods section ``Standard deviations and imputation measures'').
 In simulations (cf.\ Methods section ``Data for simulations''), we show that $\text{sd}(G_j)^{true} \approx \text{sd}(G_j)^{imp} / \sqrt{\text{INFO}_j}$, $\text{se}(\hat{\beta}_j)^{true} \approx \text{se}(\hat{\beta}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$, and $\hat{\beta}_j^{true} \approx \hat{\beta}_j^{imp} \cdot \sqrt{\text{INFO}_j}$ (Figures \ref{fig:compare-sd}, \ref{fig:compare-beta}, and \ref{fig:compare-beta-se}).
 This is the first correction of summary statistics we try in the simulations below. 
-Note that we recompute INFO scores for the subset of 362,307 European individuals used in this paper as they sometimes differ from the ones reported by the UK Biobank (Figure \ref{fig:compare-info}).
-Instead of using dosages to perform the GWAS, it has been argued that using multiple imputation (MI) would be more appropriate \cite[]{Palmer2016}.
+Note that we recompute INFO scores for the subset of 362,307 European individuals used in this paper as they can differ substantially from the ones reported by the UK Biobank for the whole data (Figure \ref{fig:compare-info}).
+As a second option, instead of using dosages to perform the GWAS, it has been argued that using multiple imputation (MI) would be more appropriate \cite[]{Palmer2016}.
 In simulations, we show that $Z_j^{MI} \approx Z_j^{imp} \cdot \text{INFO}_j$ and $\hat{\beta}_j^{MI} \approx \hat{\beta}_j^{imp} \cdot \text{INFO}_j$ (Figure \ref{fig:compare-mi}).
 This is the second correction of summary statistics we try in the simulations below, along with $n_j = N \cdot \text{INFO}_j$. 
+Finally, we try an in-between solution as a third correction, using $\hat{\beta}_j^{imp} \cdot \text{INFO}_j$, $\text{se}(\hat{\beta}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$, and $N \cdot \text{INFO}_j$.
 
 Using 40,000 variants from chromosome 22, we simulate quantitative phenotypes assuming an heritability of 20\% and 2000 causal variants using the ``true'' dataset (cf.\ Methods section ``Data for simulations'').
-We run GWAS on the dosage dataset and use these summary statistics to run LDpred2 and lassosum2 with either no correction of the summary statistics, or with one of the two described above.
+We run GWAS on the dosage dataset and use these summary statistics to run LDpred2 and lassosum2 with either no correction of the summary statistics, or with one of the three described above.
 The LD reference used by LDpred2 and lassosum2 is computed from the validation set using the ``true'' dataset.
 For lassosum2 and LDpred2 which tune parameters using validation set and can possibly use strong regularization, the two corrections just slighly improve predictive performance in these simulations (Figure \ref{fig:simu-info}).
-Correction ``sqrt\_info'', which is equivalent to postprocessing PGS effects by $\sqrt{\text{INFO}}$ slighly improves predictive performance for all methods, but correction ``info'' (using $\hat{\beta}_j^{imp} \cdot \text{INFO}_j$  and $N \cdot \text{INFO}_j$) provides much better predictive performance for LDpred2-auto, with a mean squared correlation of 15.4\% compared to 12.9\% with no correction and 13.3\% with correction ``sqrt\_info'' (Figure \ref{fig:simu-info}).
-
+All three correction improve predictive performance (Figure \ref{fig:simu-info}), [TODO: FINISH WHEN INTRODUCED TRANSFO + NEW METHODS].
+In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to postprocessing PGS effects by multiplying them by $\sqrt{\text{INFO}_j}$.
 
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
@@ -166,7 +177,7 @@ Although results for both QC used are very similar, correcting for the INFO scor
 [SHOULD JUST REPORT ONE PREDICTION INSTEAD OF ALL? THEN MAKE A TABLE?]
 
 \begin{figure}[h]
-	\centerline{\includegraphics[width=0.95\textwidth]{res_brca}}
+	\centerline{\includegraphics[width=0.95\textwidth]{res-brca}}
 	\caption{AUC (for \textit{all} models) for predicting breast cancer in the UK Biobank when using either the OncoArray or the iCOGS summary statistics.}
 	\label{fig:res_brca}
 \end{figure}
@@ -254,6 +265,19 @@ For $\lambda$, the default in lassosum uses a sequence of 20 values equally spac
 Note that we do not provide an ``auto'' version using pseudo-validation (as in \cite{mak2017polygenic}) as we have not found it to be very robust (Figure \ref{fig:pseudoval}).
 Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse correlation matrix which assumes that variants further away than 3 cM are not correlated, and therefore we do not require splitting the genome into independent LD blocks anymore (as is required in lassosum).
 
+\subsection*{New LD reference}
+
+We make three changes to the LD reference. 
+First, when using imputed data, we multiply the correlation between variants $j$ and $k$ by $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$) since it should approximate the correlation from non-imputed data ([TODO: FIGURE]).
+Second, we also define nearly independent LD blocks using the new optimal algorithm developed in \cite{prive2021optimal}.
+For different number of blocks and maximum number of variants in each block, we use the split with the minimum cost within the ones reducing the original number of non-zero values to less than 60\% (70\% for chromosome 6).
+Having a correlation matrix with independent blocks prevents the small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) to propagate to the whole genome.
+It also makes running LDpred2 (and lassosum2) faster, taking about 60\% of the initial time (since only 60\% of the initial non-zero values of the correlation matrix are kept).
+Finally, we have developed a new ``compact'' format for the SFBMs (sparse matrix on disk). Instead of using something similar to the ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous non-zero values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$. This makes this format twice as efficient for both LDpred2 and lassosum2.
+
+\subsection*{LDpred2-low-h2 and LDpred2-auto-rob}
+
+Here we introduce the small changes made to LDpred2 (-grid and -auto) in order to make them more robust.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

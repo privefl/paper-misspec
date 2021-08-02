@@ -85,12 +85,6 @@
 \end{figure}
 
 
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN}}
-	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T).}
-	\label{fig:simu-misN}
-\end{figure}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \FloatBarrier
@@ -118,7 +112,7 @@
 		\centering
 		\includegraphics[width=.8\linewidth]{ldpred2-mis-imputeN}
 	\end{subfigure}
-	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters (the SNP heritability h2 and the proportion of causal variants p) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N (cf.\ figure \ref{fig:simu-misN}). Note that the small h2 values (0.002, 0.02, 0.06) were not considered in the results of figure \ref{fig:simu-misN}. Missing points represent models that were detected as divergent.}
+	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters (the SNP heritability h2 and the proportion of causal variants p) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N (cf.\ figure \ref{fig:simu-misN}). Note that the small h2 values (0.002, 0.02, 0.06) were not considered in the results of figure \ref{fig:simu-misN}. Missing points represent models that were detected as divergent. [TODO: REPLACE BY CONTOUR PLOT? REMOVE SPARSITY COLORING?]}
 	\label{fig:ldpred2-misN}
 \end{figure}
 
