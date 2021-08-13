@@ -92,11 +92,11 @@
 \begin{figure}[p]
 	\begin{subfigure}{\textwidth}
 		\centering
-		\includegraphics[width=.8\linewidth]{lassosum2-mis-maxN}
+		\includegraphics[width=.8\linewidth]{lassosum2-mis-maxN-corr1}
 	\end{subfigure}\vspace{2em}
 	\begin{subfigure}{\textwidth}
 		\centering
-		\includegraphics[width=.8\linewidth]{lassosum2-mis-imputeN}
+		\includegraphics[width=.8\linewidth]{lassosum2-mis-imputeN-corr1}
 	\end{subfigure}
 	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters ($\lambda$ and $\delta$) for lassosum2 in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N (cf.\ figure \ref{fig:simu-misN}).  Missing points represent models that were detected as divergent.}
 	\label{fig:lassosum2-misN}
@@ -106,11 +106,11 @@
 \begin{figure}[p]
 	\begin{subfigure}{\textwidth}
 		\centering
-		\includegraphics[width=.8\linewidth]{ldpred2-mis-maxN}
+		\includegraphics[width=.8\linewidth]{ldpred2-mis-maxN-corr1}
 	\end{subfigure}\vspace{2em}
 	\begin{subfigure}{\textwidth}
 		\centering
-		\includegraphics[width=.8\linewidth]{ldpred2-mis-imputeN}
+		\includegraphics[width=.8\linewidth]{ldpred2-mis-imputeN-corr1}
 	\end{subfigure}
 	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters (the SNP heritability h2 and the proportion of causal variants p) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N (cf.\ figure \ref{fig:simu-misN}). Note that the small h2 values (0.002, 0.02, 0.06) were not considered in the results of figure \ref{fig:simu-misN}. Missing points represent models that were detected as divergent. [TODO: REPLACE BY CONTOUR PLOT? REMOVE SPARSITY COLORING?]}
 	\label{fig:ldpred2-misN}
@@ -159,15 +159,16 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{brca_onco_hist_info}}
-	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. \label{fig:hist-info-brca}}
+	\centerline{\includegraphics[width=0.65\textwidth]{brca_icogs_hist_info}}
+	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the iCOGS GWAS summary statistics for breast cancer \cite[]{michailidou2013large}. \label{fig:hist-info-brca2}}
 \end{figure}
 
 \begin{figure}[p]
-\centerline{\includegraphics[width=0.8\textwidth]{brca_onco_hist_info}}
-\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the iCOGS GWAS summary statistics for breast cancer \cite[]{michailidou2013large}. \label{fig:hist-info-brca2}}
+	\centerline{\includegraphics[width=0.65\textwidth]{brca_onco_hist_info}}
+	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. [TODO: REEXPORT -- WAS CORRUPTED] \label{fig:hist-info-brca}}
 \end{figure}
 
+\FloatBarrier
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.8\textwidth]{hist_bad_pos}}
@@ -205,6 +206,17 @@
 	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
 	\caption{For one simulation, scores from validation vs.\ scores from pseudo-validation as described in \cite{mak2017polygenic} using either correlations (the default in lassosum) or p-values when computing local false discovery rates.}
 	\label{fig:pseudoval}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{compare-cor}}
+	\caption{Comparing correlations between a subset of HapMap3 variants on chromosome 22, computed in three different ways: 1/ from imputed dosages; 2/ from multiple imputation (i.e.\ generating multiple complete datasets sampled according to imputation probabilities, computing correlations, and averaging results); from imputed dosages with the multiplicative correction of $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$).}
+	\label{fig:compare-cor}
 \end{figure}
 
 

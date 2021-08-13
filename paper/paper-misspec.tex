@@ -65,7 +65,7 @@
 
 
 \title{Identifying and correcting multiple sources of misspecification\\in GWAS summary statistics for prediction}
-\author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ Timothy S. H. Mak,$^{\text{3}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,4}}$}
+\author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ Timothy S. H. Mak,$^{\text{3}}$ Hugues Aschard,$^{\text{4,5}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,6}}$}
 
 \date{~ }
 \maketitle
@@ -73,7 +73,9 @@
 \noindent$^{\text{\sf 1}}$National Centre for Register-Based Research, Aarhus University, Aarhus, 8210, Denmark. \\
 \noindent$^{\text{\sf 2}}$Univ.\ Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK, Grenoble, 38000, France. \\
 \noindent$^{\text{\sf 3}}$Fano Labs, Hong Kong. \\
-\noindent$^{\text{\sf 4}}$Bioinformatics Research Centre, Aarhus University, Aarhus, 8000, Denmark. \\
+\noindent$^{\text{\sf 4}}$Department of Computational Biology, Institut Pasteur, Paris, 75015, France. \\
+\noindent$^{\text{\sf 5}}$Program in Genetic Epidemiology and Statistical Genetics, Harvard T.H. Chan School of Public Health, Boston, MA, 02115, USA. \\
+\noindent$^{\text{\sf 6}}$Bioinformatics Research Centre, Aarhus University, Aarhus, 8000, Denmark. \\
 \noindent$^\ast$To whom correspondence should be addressed.\\
 
 \noindent Contact: \url{florian.prive.21@gmail.com}
@@ -122,7 +124,7 @@ We recall that using a small value for this hyper-parameter induces a larger reg
 [NEED TO TALK ABOUT THE LD TRANSFO SOMEWHERE + NEW METHODS]
 
 
-\subsection*{GWAS using expected genotypes from imputation}
+\subsection*{When using allele dosages from imputation}
 
 When using the expected genotypes from imputation (dosages), their standard deviations are usually lower than the expected value under Hardy-Weinberg equilibrium (cf.\ Methods section ``Standard deviations and imputation measures'').
 In simulations (cf.\ Methods section ``Data for simulations''), we show that $\text{sd}(G_j)^{true} \approx \text{sd}(G_j)^{imp} / \sqrt{\text{INFO}_j}$, $\text{se}(\hat{\beta}_j)^{true} \approx \text{se}(\hat{\beta}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$, and $\hat{\beta}_j^{true} \approx \hat{\beta}_j^{imp} \cdot \sqrt{\text{INFO}_j}$ (Figures \ref{fig:compare-sd}, \ref{fig:compare-beta}, and \ref{fig:compare-beta-se}).
@@ -268,16 +270,21 @@ Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse corre
 \subsection*{New LD reference}
 
 We make three changes to the LD reference. 
-First, when using imputed data, we multiply the correlation between variants $j$ and $k$ by $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$) since it should approximate the correlation from non-imputed data ([TODO: FIGURE]).
-Second, we also define nearly independent LD blocks using the new optimal algorithm developed in \cite{prive2021optimal}.
+First, when using imputed data, we multiply the correlation between variants $j$ and $k$ by $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$) since it approximates well the correlation from non-imputed data (Figure \ref{fig:compare-cor}).
+Second, we also define nearly independent LD blocks using the optimal algorithm developed in \cite{prive2021optimal}.
 For different number of blocks and maximum number of variants in each block, we use the split with the minimum cost within the ones reducing the original number of non-zero values to less than 60\% (70\% for chromosome 6).
-Having a correlation matrix with independent blocks prevents the small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) to propagate to the whole genome.
+Having a correlation matrix with independent blocks prevents the small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) from propagating to the whole genome.
 It also makes running LDpred2 (and lassosum2) faster, taking about 60\% of the initial time (since only 60\% of the initial non-zero values of the correlation matrix are kept).
-Finally, we have developed a new ``compact'' format for the SFBMs (sparse matrix on disk). Instead of using something similar to the ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous non-zero values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$. This makes this format twice as efficient for both LDpred2 and lassosum2.
+Finally, we have developed a new ``compact'' format for the SFBMs (sparse matrices on disk). Instead of using something similar to the standard ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$ up to the last non-zero value for this column $j$. This makes this format about twice as efficient for both LDpred2 and lassosum2.
 
 \subsection*{LDpred2-low-h2 and LDpred2-auto-rob}
 
 Here we introduce the small changes made to LDpred2 (-grid and -auto) in order to make them more robust.
+First, LDpred2-low-h2 simply consists in running LDpred2-grid by testing $h^2$ within $\{0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$ (note the added $0.3$ compared to \cite{prive2020ldpred2}), where $h^2_\text{LDSC}$ is the heritability estimate from LD score regression. Indeed, we show in simulations here that using lower values for $h^2$ may provide higher predictive performance in the case of misspecifications (thanks to more shrinkage of the effects).
+In simulations, because of the large misspecifications, we use a larger grid over $\{0.01, 0.1, 0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$.
+
+For LDpred2-auto, we introduce two new parameters. The first one, \texttt{shrink\_corr}, allows for shrinking off-diagonal elements of the correlation matrix. This is similar to parameter `s' in lassosum, and act as a regularization. We use a value of 0.9 in simulations and 0.95 in real data when running ``LDpred2-auto-rob'' (and the default value of 1, without any effect, when running ``LDpred2-auto'').
+The second new parameter, \texttt{allow\_jump\_sign}, controls whether variants can change sign over two consecutive iterations of the Gibbs sampler. When setting this parameter to false (in the method we name ``LDpred2-auto-rob'' here), this forces the effects to go through 0 before changing sign. This is useful to prevent instability (oscillation and ultimately divergence) of the Gibbs sampler under large misspecifications, and is also useful for accelerating convergence of chains with a large initial value for $p$, the proportion of causal variants.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
