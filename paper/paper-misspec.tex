@@ -129,7 +129,7 @@ Finally, we introduce a last change for robustness here; we form independent LD 
 
 \subsection{When using allele dosages from imputation}
 
-\cite{marchini2010genotype} showed that the IMPUTE INFO measure is highly concordant with the MACH measure $\hat{r}_j^2 = \frac{var(G_j)}{2 \hat{\theta} (1 - \hat{\theta_j})}$, where $\hat{\theta_j}$ is the estimated allele frequency of variant $j$.
+\cite{marchini2010genotype} showed that the IMPUTE INFO measure is highly concordant with the MACH measure $\hat{r}_j^2 = \frac{var(G_j)}{2 \hat{\theta_j} (1 - \hat{\theta_j})}$, where $\hat{\theta_j}$ is the estimated allele frequency of variant $j$.
 Therefore, when using the expected genotypes from imputation (dosages), their standard deviations are often lower than the expected value under Hardy-Weinberg equilibrium, because $\text{INFO}_j \approx \frac{var(G_j)}{2 \hat{\theta_j} (1 - \hat{\theta_j})}$.
 In simulations (cf.\ Methods section ``Data for simulations''), we verify that $\text{sd}(G_j)^{true} \approx \text{sd}(G_j)^{imp} / \sqrt{\text{INFO}_j}$ (Figures \ref{fig:compare-sd}.
 We also show that GWAS effect sizes $\hat{\gamma}$ computed from imputed dosages are over-estimated: $\hat{\gamma}_j^{true} \approx \hat{\gamma}_j^{imp} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{true} \approx \text{se}(\hat{\gamma}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$ (Figures \ref{fig:compare-beta} and \ref{fig:compare-beta-se}).
@@ -141,51 +141,51 @@ This is the second correction of summary statistics we try in the simulations be
 Finally, we try an in-between solution as a third correction, using $\hat{\gamma}_j^{imp} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$, and $N \cdot \text{INFO}_j$.
 
 Using 40,000 variants from chromosome 22, we simulate quantitative phenotypes assuming an heritability of 20\% and 2000 causal variants using the ``true'' dataset (cf.\ Methods section ``Data for simulations'').
-We run GWAS on the dosage dataset and use these summary statistics to run LDpred2 and lassosum2 with either no correction of the summary statistics, or with one of the three described above.
-The LD reference used by LDpred2 and lassosum2 is computed from the validation set using the ``true'' dataset.
-For lassosum2 and LDpred2 which tune parameters using validation set and can possibly use strong regularization, the two corrections just slighly improve predictive performance in these simulations (Figure \ref{fig:simu-info}).
-All three correction improve predictive performance (Figure \ref{fig:simu-info}), [TODO: FINISH WHEN INTRODUCED TRANSFO + NEW METHODS].
-In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to postprocessing PGS effects by multiplying them by $\sqrt{\text{INFO}_j}$.
+We compute GWAS summary statistics from the dosage dataset and use these summary statistics to run LDpred2 and lassosum2 with either no correction of the summary statistics, or with one of the three corrections described above.
+The LD reference used by LDpred2 and lassosum2 is computed from the validation set using the dataset with ``true'' genotypes.
+For lassosum2 and LDpred2(-grid) which tune parameters using the validation set and can possibly use strong regularization, correcting for imputation quality slighly improve predictive predictive performance in these simulations (Figure \ref{fig:simu-info}).
+However, correcting for imputation quality can dramatically improve predictive performance for LDpred2-auto. 
+Moreover, new additions for robustness introduced before, namely LDpred2-low-h2, LDpred2-auto-rob, and forming independent blocks in the LD matrix improve predictive performance as well for all corrections (Figure \ref{fig:simu-info}).
+
+In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
 
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
 	\caption{Results of predictive performance for the simulations using GWAS summary statistics from imputed dosage data. Correction ``sqrt\_info'' corresponds to using $\hat{\gamma}_j^{imp} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$.
-	Correction ``info'' corresponds to using $\hat{\gamma}_j^{imp} \cdot \text{INFO}_j$  and $N \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{imp} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$, and $N \cdot \text{INFO}_j$.}
+	Correction ``info'' corresponds to using $\hat{\gamma}_j^{imp} \cdot \text{INFO}_j$  and $N \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{imp} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$, and $N \cdot \text{INFO}_j$. Red bars correspond to using the LD with independent blocks (Methods).}
 	\label{fig:simu-info}
 \end{figure}
 
+
 \subsection{Application to breast cancer summary statistics}
 
-[TALK ABOUT THE SAMPLE SIZES BEFORE/AFTER QC?]
-
 Breast cancer summary statistics are interesting because they include results from two mega analyses \cite[]{michailidou2013large,michailidou2015genome,michailidou2017association}, which means there is some larger precision in the parameters reported, such as the INFO scores and the sample sizes.
-INFO scores for the OncoArray summary statistics (after having restricted to HapMap3 variants) are globally very good (Figure \ref{fig:hist-info-brca}), but the ones from iCOGS are a bit worse (Figure \ref{fig:hist-info-brca2}), probably because the chip used included around 200K variants only, compared to more than 500K variants for the OncoArray.
-For the OncoArray summary statistics, we first compare the standard deviations inferred from the reported allele frequencies (i.e.\ $\sqrt{2 f (1 - f)}$ where $f$ is the allele frequency, and denoted as sd\_af) versus the ones inferred from the GWAS summary statistics (Equation \eqref{eq:approx-sd-log}, and denoted as sd\_ss).
-When coloring by INFO scores, we see a clear trend with sd\_ss being lower and lower than sd\_af as INFO decreases.
-Using $\text{sd\_ss} / \sqrt{\text{INFO}}$ instead, we get a very good fit with sd\_af, except for some variants of chromosome 6 and 8. Most of these outlier variants are in regions 25-33 Mbp of chromosome 6 and 8-12 Mbp of chromosome 8 (Figure \ref{fig:hist-bad-pos}), which are two known long-range LD regions \cite[]{price2008long}.
-We hypothesize that this is due to using principal components (PCs) that capture LD structure as covariates in GWAS \cite[]{prive2020efficient}.
+Imputation INFO scores for the OncoArray summary statistics (after having restricted to HapMap3 variants) are generally very good (Figure \ref{fig:hist-info-brca}) and better than the ones from iCOGS (Figure \ref{fig:hist-info-brca2}), probably because the chip used included around 200K variants only, compared to more than 500K variants for the OncoArray.
+For both summary statistics, we first compare the standard deviations inferred from the reported allele frequencies (i.e.\ $\sqrt{2 f (1 - f)}$ where $f$ is the allele frequency, and denoted as sd\_af) versus the ones inferred from the GWAS summary statistics (Equation \eqref{eq:approx-sd-log}, and denoted as sd\_ss).
+When coloring by INFO scores, we see a clear trend with sd\_ss being lower than sd\_af as INFO decreases; indeed, using $\text{sd\_ss} / \sqrt{\text{INFO}}$ provides a very good fit for sd\_af, except for some variants of chromosome 6 and 8 for the OncoArray summary statistics (Figures \ref{fig:brca_onco_qc} and \ref{fig:brca_icogs_qc}). Most of these outlier variants are in regions 25-33 Mbp of chromosome 6 and 8-12 Mbp of chromosome 8 (Figure \ref{fig:hist-bad-pos}), which are two known long-range LD regions \cite[]{price2008long}.
+We hypothesize that this is due to using principal components (PCs) as covariates in GWAS that capture LD structure instead of population structure \cite[]{prive2020efficient}.
 To validate this hypothesis, we simulate a phenotype using HapMap3 variants of chromosome 6 for 10,000 individuals from the UK Biobank, then we run GWAS with or without PC19 as covariate. PC19 from the UK Biobank was previously reported to capture LD structure in region 70-91 Mbp of chromsome 6 \cite[]{prive2020efficient}.
 In these simulations, the same bias as in figure \ref{fig:hist-bad-pos}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), therefore confirming our hypothesis.
-For the iCOGS summary statistics, we also see a clear trend with sd\_ss being lower and lower than sd\_af as INFO decreases, but they do not have issues with PCs  (Figure \ref{fig:brca_icogs_qc}).
 
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{brca_onco_qc}}
-	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 HapMap3 variants are represented, at random.}
 	\label{fig:brca_onco_qc}
 \end{figure}
 
-Therefore, having the INFO score enables both to correct for it in the QC step to be able to pinpoint possible other problems, and possibly to correct for it and improve prediction as shown in the simulations before.
+Therefore, when an accurate imputation INFO score is provided, this enables both to correct for it in the QC step we propose to possibly uncover problems with the summary statistics, and when building polygenic scores to improve prediction.
 We try this for the two breast cancer summary statistics. We first compare the standard QC proposed in \cite{prive2020ldpred2} (which ends up filtering on MAF here, which we call ``qc1''). We then also filter out the two long-range LD regions of chromosome 6 and 8 for the OncoArray summary statistics and remove around 500 variants when filtering on differences of MAFs between summary statistics and the validation dataset.
-As for the correction for the INFO scores, we use $\hat{\gamma}_j^{imp} \cdot \text{INFO}_j$ and $N \cdot \text{INFO}_j$ as we have shown to perform well in simulations.
-Although results for both QC used are very similar, correcting for the INFO score really improves prediction, especially for LDpred2-auto [TODO: NUMBERS] (Figure \ref{fig:res_brca}).
-
-[SHOULD JUST REPORT ONE PREDICTION INSTEAD OF ALL? THEN MAKE A TABLE?]
+As for the correction for the INFO scores, we use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
+Although results for both QC used are very similar, correcting for the INFO score slightly improves prediction when deriving polygenic scores based on iCOGS summary statistics (Figure \ref{fig:res_brca}). 
+All other improvements introduced before have little or no effect here [DEPRESSING; SHOULD REWORD?].
 
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{res-brca}}
-	\caption{AUC (for \textit{all} models) for predicting breast cancer in the UK Biobank when using either the OncoArray or the iCOGS summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models) for predicting breast cancer in the UK Biobank when using either the OncoArray or the iCOGS summary statistics.}
 	\label{fig:res_brca}
 \end{figure}
+
+[TODO: NEED A TABLE WITH THE SUMSTATS AND SAMPLE SIZES AND SO ON]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
