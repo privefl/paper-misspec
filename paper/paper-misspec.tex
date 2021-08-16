@@ -64,7 +64,7 @@
 \begin{document}
 
 
-\title{Identifying and correcting multiple sources of misspecification\\in GWAS summary statistics for prediction}
+\title{Identifying and correcting multiple sources of misspecification\\in GWAS summary statistics for prediction\\---~OR~---\\Reducing misspecifications and improving tagging\\for better polygenic scores}
 \author{Florian Priv\'e,$^{\text{1,}*}$ Julyan Arbel,$^{\text{2}}$ Timothy S. H. Mak,$^{\text{3}}$ Hugues Aschard,$^{\text{4,5}}$ and Bjarni J. Vilhj\'almsson$^{\text{1,6}}$}
 
 \date{~ }
@@ -185,7 +185,7 @@ All other improvements introduced before have little or no effect here [DEPRESSI
 	\label{fig:res_brca}
 \end{figure}
 
-[TODO: NEED A TABLE WITH THE SUMSTATS AND SAMPLE SIZES AND SO ON]
+\subsection{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -214,6 +214,30 @@ The first dataset is used as what could be the real genotype calls and the secon
 
 We also use the UK Biobank data, and use the same individuals as described in the previous subsection. We sample 10,000 individuals to form a validation set and use the remaining 352,307 individuals as test set.
 We restrict to the genetic variants to the 1,054,315 HapMap3 variants used in the LD reference provided in \cite{prive2020ldpred2}.
+We also try two new sets of variants (see next section).
+
+To define phenotypes in the UK Biobank, we first map ICD10 and ICD9 codes (UKBB fields 40001, 40002, 40006, 40013, 41202, 41270 and 41271) to phecodes using R package PheWAS \cite[]{carroll2014r,wu2019mapping}.
+We use external published GWAS summary statistics listed in table \ref{tab:sumstats} to derive polygenic scores.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l||c|c|c||c|c|}
+		\hline
+		Trait & GWAS citation & \begin{tabular}{@{}c@{}}Effective GWAS\\sample size\end{tabular} & \# GWAS variants & \begin{tabular}{@{}c@{}}\# matched variants\\with INFO > 0.4\end{tabular} & Mean INFO \\
+		\hline
+		Breast cancer (BRCA) [iCOGS] & \cite{michailidou2017association} & ~~87036.6 & 11,792,542 & 1,051,242 & 0.841 \\
+		Breast cancer (BRCA) [OncoArray] & \cite{michailidou2017association} & 104441.6 & 11,792,542 & 1,054,233 & 0.968 \\
+		Type 1 diabetes (T1D) [Affymetrix] & \cite{censin2017childhood} & ~~~~5515.6  & ~~8,996,866 & ~~~934,712 & 0.885 \\	
+		Type 1 diabetes (T1D) [Illumina] & \cite{censin2017childhood} & ~~~~7982.0  & ~~8,996,866 & ~~~949,334 & 0.942 \\
+		Prostate cancer (PRCA) & \cite{schumacher2018association} & 135316.1 & 20,370,946 & ~~~818,400 & 0.969 \\
+		Depression (MDD) [without UKBB] & \cite{wray2018genome} & 110463.7 & ~~9,874,289 & 1,049,455 & 0.968 \\
+		Coronary artery disease (CAD) & \cite{nikpay2015comprehensive} & 129014.3 & ~~9,455,778 & 1,052,200 & 0.982 \\
+		\hline
+	\end{tabular}
+	\caption{Summary of external GWAS summary statistics used. PRCA summary statistics have many variants with a missing INFO score, which we discard.\label{tab:sumstats}}
+\end{table}
+
+\subsection{Two new sets of variants}
 
 [TODO: MAYBE THE RIGHT PLACE TO PRESENT THE TWO NEW SETS]
 
