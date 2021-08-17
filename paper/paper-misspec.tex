@@ -80,18 +80,23 @@
 
 \noindent Contact: \url{florian.prive.21@gmail.com}
 
-\vspace*{5em}
+\clearpage
 
 \abstract{
 }
 
+\vspace*{5em}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\clearpage
+%\clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Introduction}
+
+TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -102,24 +107,24 @@
 We design simulations where variants have different GWAS sample sizes, which is often the case when meta-analyzing GWAS from multiple cohorts without the same genome coverage.
 Using 40,000 variants from chromosome 22 (Methods), we simulate quantitative phenotypes with a heritability of 20\% and 2000 causal variants.
 For half of the variants, we use 100\% of 300,000 individuals for GWAS, but use only 80\% for one quarter of variants and 60\% for the remaining quarter. 
-We then run C+T, LDpred2-inf, LDpred2(-grid), LDpred2-auto, lassosum, lassosum2, PRS-CS and SBayesR by using either the true per-variant GWAS sample size, the total sample size, or the imputed sample size. 
+We then run C+T, LDpred2-inf, LDpred2(-grid), LDpred2-auto, lassosum, lassosum2, PRS-CS and SBayesR by using either the true per-variant GWAS sample sizes, the total sample size, or imputed sample sizes. 
 However, we do not show results for SBayesR because it always diverged and for PRS-CS because the overlap with the LD reference they provide is too small.
 Averaged over 10 simulations, when providing true per-variant GWAS sample sizes, squared correlations between the polygenic scores and the simulated phenotypes are of 0.123 for C+T, 0.161 for lassosum, 0.169 for lassosum2, 0.159 for LDpred2(-grid), 0.140 for LDpred2-auto, and 0.141 for LDpred2-inf (Figure \ref{fig:simu-misN}).
-Results when using imputed sample sizes are quite similar.
+Results when using imputed (instead of true) sample sizes are quite similar.
 Note that C+T does not use this sample size information.
 When using the total GWAS sample size instead of the per-variant sample sizes, predictive performance slightly decreases to 0.157 for lassosum and to 0.163 for lassosum2, but dramatically decreases for LDpred2 with new values of 0.134 for LDpred2-grid, 0.119 for LDpred2-auto, and 0.123 for LDpred2-inf (Figure \ref{fig:simu-misN}).
 Therefore, this extreme simulation scenario shows that LDpred2 can be sensitive to GWAS sample size misspecification, whereas lassosum (and lassosum2) seems little affected by this.
 
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN}}
-	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (see Methods in main text), or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks (Methods).}
+	\caption{Results for the simulations with sample size misspecification. The GWAS sample size is ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (Methods), or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks (Methods).}
 	\label{fig:simu-misN}
 \end{figure}
 
 We then conduct further investigations to explain results of figure \ref{fig:simu-misN}.
 First, the reason why results for LDpred2-auto are the same as with LDpred2-inf is because it always converges to an infinitesimal model (p = 1) in these simulations.
 We therefore introduce two new parameters to make LDpred2-auto more robust and call this ``LDpred2-auto-rob'' here (Methods).
-Second, for lassosum2, results for a grid of parameters (over $\lambda$ and $\delta$) and quite smooth compared to LDpred2 (Figures \ref{fig:lassosum2-misN} and \ref{fig:ldpred2-misN}). 
+Second, for lassosum2, results for a grid of parameters (over $\lambda$ and $\delta$) are quite smooth compared to LDpred2 (Figures \ref{fig:lassosum2-misN} and \ref{fig:ldpred2-misN}). 
 In these simulations with misspecified sample sizes, it seems highly beneficial to use a small value for the SNP heritability hyper-parameter $h^2$ in LDpred2, e.g.\ a value of 0.02 or even 0.002 when the true value is 0.2 (Figure \ref{fig:ldpred2-misN}). 
 We recall that using a small value for this hyper-parameter induces a larger regularization (shrinkage) on the effect sizes.
 When trying LDpred2(-grid) with these low values for $h^2$, we call this ``LDpred2-low-h2'' here.
@@ -129,9 +134,9 @@ Finally, we introduce a last change for robustness here; we form independent LD 
 
 \subsection{When using allele dosages from imputation}
 
-\cite{marchini2010genotype} showed that the IMPUTE INFO measure is highly concordant with the MACH measure $\hat{r}_j^2 = \frac{var(G_j)}{2 \hat{\theta_j} (1 - \hat{\theta_j})}$, where $\hat{\theta_j}$ is the estimated allele frequency of variant $j$.
-Therefore, when using the expected genotypes from imputation (dosages), their standard deviations are often lower than the expected value under Hardy-Weinberg equilibrium, because $\text{INFO}_j \approx \frac{var(G_j)}{2 \hat{\theta_j} (1 - \hat{\theta_j})}$.
-In simulations (cf.\ Methods section ``Data for simulations''), we verify that $\text{sd}(G_j)^{true} \approx \text{sd}(G_j)^{imp} / \sqrt{\text{INFO}_j}$ (Figures \ref{fig:compare-sd}.
+\cite{marchini2010genotype} showed that the IMPUTE INFO measure is highly concordant with the MACH measure $\hat{r}_j^2 = \frac{var(G_j)}{2 \hat{\theta}_j (1 - \hat{\theta}_j)}$, where $\hat{\theta}_j$ is the estimated allele frequency of variant $j$.
+Therefore, when using the expected genotypes from imputation (dosages), their standard deviations are often lower than the expected value under Hardy-Weinberg equilibrium, because $\text{INFO}_j \approx \frac{var(G_j)}{2 \hat{\theta}_j (1 - \hat{\theta}_j)}$.
+In simulations (cf.\ Methods section ``Data for simulations''), we verify that $\text{sd}(G_j)^{true} \approx \text{sd}(G_j)^{imp} / \sqrt{\text{INFO}_j}$ (Figure \ref{fig:compare-sd}).
 We also show that GWAS effect sizes $\hat{\gamma}$ computed from imputed dosages are over-estimated: $\hat{\gamma}_j^{true} \approx \hat{\gamma}_j^{imp} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{true} \approx \text{se}(\hat{\gamma}_j)^{imp} \cdot \sqrt{\text{INFO}_j}$ (Figures \ref{fig:compare-beta} and \ref{fig:compare-beta-se}).
 This is the first correction of summary statistics we try in the simulations below. 
 Note that we recompute INFO scores for the subset of 362,307 European individuals used in this paper as they can differ substantially from the ones reported by the UK Biobank for the whole data (Figure \ref{fig:compare-info}).
@@ -142,10 +147,10 @@ Finally, we try an in-between solution as a third correction, using $\hat{\gamma
 
 Using 40,000 variants from chromosome 22, we simulate quantitative phenotypes assuming an heritability of 20\% and 2000 causal variants using the ``true'' dataset (cf.\ Methods section ``Data for simulations'').
 We compute GWAS summary statistics from the dosage dataset and use these summary statistics to run LDpred2 and lassosum2 with either no correction of the summary statistics, or with one of the three corrections described above.
-The LD reference used by LDpred2 and lassosum2 is computed from the validation set using the dataset with ``true'' genotypes.
-For lassosum2 and LDpred2(-grid) which tune parameters using the validation set and can possibly use strong regularization, correcting for imputation quality slighly improve predictive predictive performance in these simulations (Figure \ref{fig:simu-info}).
-However, correcting for imputation quality can dramatically improve predictive performance for LDpred2-auto. 
-Moreover, new additions for robustness introduced before, namely LDpred2-low-h2, LDpred2-auto-rob, and forming independent blocks in the LD matrix improve predictive performance as well for all corrections (Figure \ref{fig:simu-info}).
+The LD reference used by LDpred2 and lassosum2 is computed from the validation set using the dataset with the ``true'' genotypes.
+For lassosum2 and LDpred2(-grid) which tune parameters using the validation set, correcting for imputation quality slightly improves predictive performance in these simulations (Figure \ref{fig:simu-info}).
+However, correcting for imputation quality can dramatically improves predictive performance for LDpred2-auto. 
+Moreover, new additions for robustness introduced before, namely LDpred2-low-h2, LDpred2-auto-rob, and forming independent blocks in the LD matrix also improve predictive performance for all corrections (Figure \ref{fig:simu-info}).
 
 In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
 
@@ -174,7 +179,7 @@ In these simulations, the same bias as in figure \ref{fig:hist-bad-pos}B is obse
 \end{figure}
 
 Therefore, when an accurate imputation INFO score is provided, this enables both to correct for it in the QC step we propose to possibly uncover problems with the summary statistics, and when building polygenic scores to improve prediction.
-We try this for the two breast cancer summary statistics. We first compare the standard QC proposed in \cite{prive2020ldpred2} (which ends up filtering on MAF here, which we call ``qc1''). We then also filter out the two long-range LD regions of chromosome 6 and 8 for the OncoArray summary statistics and remove around 500 variants when filtering on differences of MAFs between summary statistics and the validation dataset.
+We try this for the two breast cancer summary statistics. We first compare the standard QC proposed in \cite{prive2020ldpred2} (which ends up filtering on MAF here, which we call ``qc1''). We then also filter out the two long-range LD regions of chromosome 6 and 8 for the OncoArray summary statistics and remove around 500 variants when filtering on differences of MAFs between summary statistics and the validation dataset (``qc2'').
 As for the correction for the INFO scores, we use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
 Although results for both QC used are very similar, correcting for the INFO score slightly improves prediction when deriving polygenic scores based on iCOGS summary statistics (Figure \ref{fig:res_brca}). 
 All other improvements introduced before have little or no effect here [DEPRESSING; SHOULD REWORD?].
@@ -185,13 +190,23 @@ All other improvements introduced before have little or no effect here [DEPRESSI
 	\label{fig:res_brca}
 \end{figure}
 
-\subsection{}
+\subsection{Larger sets of variants and other phenotypes}
+
+We use external summary statistics for which INFO scores are reported (Table \ref{tab:sumstats}); they all have a very high mean INFO score (larger than 0.94), except for BRCA-iCOGS (0.841) and T1D-affy (0.885).
+QC plots comparing standard deviations usually look good (after the INFO score correction), except for coronary artery disease (CAD) summary statistics (Figures \ref{fig:brca_icogs_qc}-\ref{fig:t1d_illu_qc}).
+We show previous results as figure \ref{fig:res_brca} for other phenotypes in figures \ref{fig:res_cad}-\ref{fig:res_t1d}; most changes introduced before have little or no impact on the predictions, except for the second quality control performed for CAD when using LDpred2-auto (Figure \ref{fig:res_cad}).
+We then show results with two new sets of variants (Methods) in figures \ref{fig:res_brca_all}-\ref{fig:res_t1d_all}.
+[WHAT TO SAY ABOUT THIS? MAXTAG GOOD FOR SOME TRAITS, CLUMP NOT GREAT. PUT ONE FIGURE IN MAIN TEXT?]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Discussion}
 
+TODO
+
 [TODO: TALK ABOUT HARD INFERRING N != INFO]
+
+[TALK ABOUT SUM(N\_EFF) VS N\_EFF(SUM)?]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -212,7 +227,7 @@ The first dataset is used as what could be the real genotype calls and the secon
 
 \subsection{Data for real analyses}
 
-We also use the UK Biobank data, and use the same individuals as described in the previous subsection. We sample 10,000 individuals to form a validation set and use the remaining 352,307 individuals as test set.
+We also use the UK Biobank data, and use the same individuals as described in the previous section. We sample 10,000 individuals to form a validation set and use the remaining 352,307 individuals as test set.
 We restrict to the genetic variants to the 1,054,315 HapMap3 variants used in the LD reference provided in \cite{prive2020ldpred2}.
 We also try two new sets of variants (see next section).
 
@@ -246,13 +261,13 @@ We then compile frequencies and imputation INFO scores from other datasets, iPSY
 We restrict to variants with a mean INFO > 0.3 in these other datasets, and also compute the median frequency per variant.
 To exclude potential mismappings in the genotyped data \cite[]{kunert2020allele} that might have propagated to the imputed data, we compare median frequencies in the external data to the ones in the UK Biobank.
 As we expect these potential errors to be localized around errors in the genotype data, we apply a moving-average smoothing on the frequency differences to increase power to detect these errors and also reduce false positives.
-We define the threshold on these smoothed differences based on visual inspection of their histogram (0.03).
+We define the threshold (of 0.03) on these smoothed differences based on visual inspection of their histogram.
 This results in an initial set of 9,394,361 variants.
 
-From this large set of variants, we define two sets.
+From this large set of variants, we define the two sets.
 One is based on clumping, using a threshold $r^2 = 0.9$ over a radius of 100 Kbp and prioritizing HapMap3 variants and larger INFO scores. This results in a set ``clump'' of 2,465,478 variants, among which there are 554,655 of the initial HapMap3 variants.
-For the second set, we aim at maximizing the tagging of the initial 9,394,361 variants, i.e. $\sum_{i \in \text{all}} \max_{j \in \text{set}}{|R_{i,j}|}$ (inspired from the alternative sensitivity of \cite{agier2016systematic}). 
-We design a greedy algorithm that first select all HapMap3 variants, then add one variant at a time, the one that maximizes the addition to this sum, until no variant can add more than 0.2.
+For the second set, we aim at maximizing the tagging of all the initial 9,394,361 variants, i.e. $\sum_{i \in \text{all}} \max_{j \in \text{set}}{|R_{i,j}|}$ (inspired from the alternative sensitivity of \cite{agier2016systematic}). 
+We design a greedy algorithm that first selects all HapMap3 variants, then adds one variant at a time, the one that maximizes the addition to this sum, until no variant can add more than 0.2.
 This results in a set ``maxtag'' of 2,029,086 variants.
 
 
@@ -313,8 +328,8 @@ Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse corre
 We make three changes to the LD reference. 
 First, when using imputed data, we multiply the correlation between variants $j$ and $k$ by $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$) since it approximates well the correlation from non-imputed data (Figure \ref{fig:compare-cor}).
 Second, we also define nearly independent LD blocks using the optimal algorithm developed in \cite{prive2021optimal}.
-For different number of blocks and maximum number of variants in each block, we use the split with the minimum cost within the ones reducing the original number of non-zero values to less than 60\% (70\% for chromosome 6).
-Having a correlation matrix with independent blocks prevents the small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) from propagating to the whole genome.
+For different numbers of blocks and maximum number of variants in each block, we use the split with the minimum cost within the ones reducing the original number of non-zero values to less than 60\% (70\% for chromosome 6).
+Having a correlation matrix with independent blocks prevents the small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) from propagating to too many variants.
 It also makes running LDpred2 (and lassosum2) faster, taking about 60\% of the initial time (since only 60\% of the initial non-zero values of the correlation matrix are kept).
 Finally, we have developed a new ``compact'' format for the SFBMs (sparse matrices on disk). Instead of using something similar to the standard ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$ up to the last non-zero value for this column $j$. This makes this format about twice as efficient for both LDpred2 and lassosum2.
 
