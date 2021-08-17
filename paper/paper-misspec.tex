@@ -237,9 +237,24 @@ We use external published GWAS summary statistics listed in table \ref{tab:sumst
 	\caption{Summary of external GWAS summary statistics used. PRCA summary statistics have many variants with a missing INFO score, which we discard.\label{tab:sumstats}}
 \end{table}
 
+
 \subsection{Two new sets of variants}
 
-[TODO: MAYBE THE RIGHT PLACE TO PRESENT THE TWO NEW SETS]
+We also design two larger sets of imputed variants to compare against using only HapMap3 variants for prediction. 
+Following \cite{prive2021high}, we first restrict to UKBB variants with MAF > 0.01 and INFO > 0.3.
+We then compile frequencies and imputation INFO scores from other datasets, iPSYCH and summary statistics for breast cancer, prostate cancer, coronary artery disease, type-1 diabetes and depression \cite[]{bybjerg2020ipsych2015,michailidou2017association,schumacher2018association,nikpay2015comprehensive,censin2017childhood,wray2018genome}. 
+We restrict to variants with a mean INFO > 0.3 in these other datasets, and also compute the median frequency per variant.
+To exclude potential mismappings in the genotyped data \cite[]{kunert2020allele} that might have propagated to the imputed data, we compare median frequencies in the external data to the ones in the UK Biobank.
+As we expect these potential errors to be localized around errors in the genotype data, we apply a moving-average smoothing on the frequency differences to increase power to detect these errors and also reduce false positives.
+We define the threshold on these smoothed differences based on visual inspection of their histogram (0.03).
+This results in an initial set of 9,394,361 variants.
+
+From this large set of variants, we define two sets.
+One is based on clumping, using a threshold $r^2 = 0.9$ over a radius of 100 Kbp and prioritizing HapMap3 variants and larger INFO scores. This results in a set ``clump'' of 2,465,478 variants, among which there are 554,655 of the initial HapMap3 variants.
+For the second set, we aim at maximizing the tagging of the initial 9,394,361 variants, i.e. $\sum_{i \in \text{all}} \max_{j \in \text{set}}{|R_{i,j}|}$ (inspired from the alternative sensitivity of \cite{agier2016systematic}). 
+We design a greedy algorithm that first select all HapMap3 variants, then add one variant at a time, the one that maximizes the addition to this sum, until no variant can add more than 0.2.
+This results in a set ``maxtag'' of 2,029,086 variants.
+
 
 \subsection{GWAS sample size imputation}
 
