@@ -98,7 +98,7 @@
 		\centering
 		\includegraphics[width=.8\linewidth]{lassosum2-mis-imputeN-corr1}
 	\end{subfigure}
-	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters ($\lambda$ and $\delta$) for lassosum2 in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N.  Missing points represent models that were detected as divergent.}
+	\caption{Multiple results (squared correlation $r^2$ between polygenic score and phenotype) over a grid of parameters ($\lambda$ and $\delta$) for lassosum2 in one of the simulations with misspecified GWAS sample sizes ($n_j$). The top subfigure is using the maximum of $n_j$'s, whereas the bottom subfigure is using the imputed $n_j$'s.  Missing points represent models that were detected as divergent. [TODO: USE GREEK LETTERS + FACETS FOR COMMON LEGEND SCALE]}
 	\label{fig:lassosum2-misN}
 \end{figure}
 
@@ -112,7 +112,7 @@
 		\centering
 		\includegraphics[width=.8\linewidth]{ldpred2-mis-imputeN-corr1}
 	\end{subfigure}
-	\caption{Multiple results (squared correlation r2 between polygenic score and phenotype) over a grid of parameters (the SNP heritability h2 and the proportion of causal variants p) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes (N). The top subfigure is using the maximum N, whereas the bottom subfigure is using the imputed N. Note that the small h2 values (0.002, 0.02, 0.06) were added and are part of the method we call ``LDpred2-low-h2'' in the main text. Missing points represent models that were detected as divergent.}
+	\caption{Multiple results (squared correlation $r^2$ between polygenic score and phenotype) over a grid of parameters (the SNP heritability $h^2$ and the proportion of causal variants $p$) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes ($n_j$). The top subfigure is using the maximum of $n_j$'s, whereas the bottom subfigure is using the imputed $n_j$'s. Note that the small $h^2$ values (0.002, 0.02, 0.06) were added and are part of the method we call ``LDpred2-low-h2'' in the main text. Missing points represent models that were detected as divergent.}
 	\label{fig:ldpred2-misN}
 \end{figure}
 
@@ -135,7 +135,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.8\textwidth]{compare-sd}}
-	\caption{Standard deviations from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. \label{fig:compare-sd}}
+	\caption{Standard deviations from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. [TODO: ALL, MAKE SIDE BY SIDE WITH A/B + DESCRIBE MORE] \label{fig:compare-sd}}
 \end{figure}
 
 \begin{figure}[p]
@@ -152,7 +152,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.8\textwidth]{compare-info}}
-	\caption{INFO scores reported in the UK Biobank vs.\ INFO scores recomputed from the subset of 362,307 European individuals used in this paper. \label{fig:compare-info}}
+	\caption{INFO scores reported in the UK Biobank vs.\ INFO scores recomputed from the subset of 362,307 European individuals used in this paper. [TODO: FOR THE VARIANTS IN SIMU?] \label{fig:compare-info}}
 \end{figure}
 
 
@@ -162,7 +162,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.8\textwidth]{compare-mult-imp}}
-	\caption{GWAS effect sizes and Z-scores from imputed dosages versus from multiple imputation (MI, 10 draws used), ``corrected'' and colored by INFO scores. This shows only one tenth of the simulated variants, because MI takes some time to run. \label{fig:compare-mi}}
+	\caption{GWAS effect sizes and Z-scores from imputed dosages versus from multiple imputation (MI, 10 draws used), ``corrected'' and colored by INFO scores. This shows only one tenth of the simulated variants, because MI can be computationally intensive. \label{fig:compare-mi}}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -242,25 +242,25 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.75\textwidth]{res-cad}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting CAD in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models) for predicting CAD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_cad}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.75\textwidth]{res-mdd}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting MDD in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models) for predicting MDD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_mdd}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.75\textwidth]{res-prca}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting PRCA in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models) for predicting PRCA in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_prca}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{res-t1d}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting T1D in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models) for predicting T1D in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_t1d}
 \end{figure}
 
@@ -270,31 +270,31 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{res-all-brca}}
-	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting BRCA in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting BRCA in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_brca_all}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.9\textwidth]{res-all-cad}}
-	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting CAD in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting CAD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_cad_all}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.9\textwidth]{res-all-mdd}}
-	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting MDD in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting MDD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_mdd_all}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.9\textwidth]{res-all-prca}}
-	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting PRCA in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting PRCA in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_prca_all}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{res-all-t1d}}
-	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting T1D in the UK Biobank from external summary statistics.}
+	\caption{Raw partial correlations (for \textit{all} models and \textit{all} sets) for predicting T1D in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_t1d_all}
 \end{figure}
 
@@ -315,7 +315,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
-	\caption{For one simulation, scores from validation vs.\ scores from pseudo-validation as described in \cite{mak2017polygenic} using either correlations (the default in lassosum) or p-values when computing local false discovery rates.}
+	\caption{For one simulation, scores from validation vs.\ scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values when computing local false discovery rates.}
 	\label{fig:pseudoval}
 \end{figure}
 
