@@ -135,7 +135,7 @@ In these simulations with misspecified sample sizes, it seems highly beneficial 
 Indeed, using a small value for this hyper-parameter induces a larger regularization (shrinkage) on the effect sizes.
 When running LDpred2(-grid) with a grid of hyper-parameters including these low values for $h^2$, we refer to this as ``LDpred2-low-h2'' here.
 Results with LDpred2-low-h2 improves from 0.159 to 0.169 when using true sample sizes and from 0.134 to 0.163 when using the maximum sample size.
-Finally, we introduce a last change for robustness here: we form independent LD blocks in the LD matrix to prevent small errors in the Gibbs sampler to propagate to too many variants (Methods). This change seems to solve convergence issues of LDpred2 in these simulations (Figure \ref{fig:ldpred2-misN-corr2}) and further improves predictive performance for all LDpred2 methods (Figure \ref{fig:simu-misN}).
+Finally, we introduce a last change for robustness here: we form independent LD blocks in the LD matrix to prevent small errors in the Gibbs sampler to propagate to too many variants (Methods). This change seems to solve convergence issues of LDpred2 in these simulations (Figure \ref{fig:ldpred2-misN}) and further improves predictive performance for all LDpred2 methods (Figure \ref{fig:simu-misN}).
 
 
 \subsection{When using allele dosages from imputation}
