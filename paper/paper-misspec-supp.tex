@@ -102,30 +102,21 @@
 	\label{fig:ldpred2-misN}
 \end{figure}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{compare-sd}}
-	\caption{Standard deviations from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. [TODO: ALL, MAKE SIDE BY SIDE WITH A/B + DESCRIBE MORE] \label{fig:compare-sd}}
-\end{figure}
-
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{compare-beta}}
-	\caption{GWAS effect sizes from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. \label{fig:compare-beta}}
-\end{figure}
-
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{compare-beta-se}}
-	\caption{Standard errors of GWAS effect sizes from ``true'' genotype calls versus from imputed dosages, colored by INFO scores. \label{fig:compare-beta-se}}
+	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
+	\caption{Histogram of the imputation INFO scores of the 40,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{compare-info}}
-	\caption{INFO scores reported in the UK Biobank vs.\ INFO scores recomputed from the subset of 362,307 European individuals used in this paper. [TODO: FOR THE VARIANTS IN SIMU?] \label{fig:compare-info}}
+	\centerline{\includegraphics[width=0.75\textwidth]{compare-info}}
+	\caption{INFO scores reported in the UK Biobank for variants used in simulations versus INFO scores recomputed from the subset of 362,307 European individuals used in this paper. \label{fig:compare-info}}
 \end{figure}
 
 
@@ -134,8 +125,25 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{compare-mult-imp}}
-	\caption{GWAS effect sizes and Z-scores from imputed dosages versus from multiple imputation (MI, 10 draws used), ``corrected'' and colored by INFO scores. This shows only one tenth of the simulated variants, because MI can be computationally intensive. \label{fig:compare-mi}}
+	\centerline{\includegraphics[width=0.95\textwidth]{compare-sd}}
+	\caption{\textbf{A:} Raw standard deviations (SDs) from imputed dosages or \textbf{B:} corrected SDs from imputed dosages (dividing them by $\sqrt{\text{INFO}}$) versus SDs from ``true'' genotype calls, colored by INFO scores. \label{fig:compare-sd}}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{compare-beta-se}}
+	\caption{Standard errors of GWAS effect sizes (SEs) from ``true'' genotype calls versus either \textbf{A:} raw SEs from imputed dosages or \textbf{B:} corrected SEs from imputed dosages (multiplying them by $\sqrt{\text{INFO}}$), colored by INFO scores. \label{fig:compare-beta-se}}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{compare-beta}}
+	\caption{GWAS effect sizes ($\gamma$) from ``true'' genotype calls versus either \textbf{A:} raw $\gamma$ from imputed dosages or \textbf{B:} corrected $\gamma$ from imputed dosages (multiplying them by $\sqrt{\text{INFO}}$), colored by INFO scores. \label{fig:compare-beta}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{compare-mult-imp}}
+	\caption{Corrected GWAS \textbf{A:} Z-scores and \textbf{B:} effect sizes from imputed dosages (multiplying them by $\text{INFO}$) versus the ones from multiple imputation (MI, 10 draws used), colored by INFO scores. This shows only one tenth of the simulated variants, because MI can be computationally intensive. \label{fig:compare-mi}}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -151,14 +159,15 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.65\textwidth]{brca_onco_hist_info}}
-	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. [TODO: REEXPORT -- WAS CORRUPTED] \label{fig:hist-info-brca}}
+	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. \label{fig:hist-info-brca}}
 \end{figure}
 
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{hist_bad_pos}}
-	\caption{Histogram of the positions of outlier variants from Figure 2B [TODO: VERIF NUMBER AT THE END] in the main text. \label{fig:hist-bad-pos}}
+	\centerline{\includegraphics[width=0.75\textwidth]{hist_bad_pos}}
+	\caption{Histogram of the positions of outlier variants from Figure 3B in the main text.%TODO: VERIF NUMBER AT THE END
+	\label{fig:hist-bad-pos}}
 \end{figure}
 
 \begin{figure}[p]
@@ -173,25 +182,25 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{brca_icogs_qc}}
-	\caption{Standard deviations inferred from the iCOGS breast cancer GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\caption{Standard deviations inferred from the iCOGS breast cancer GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 	\label{fig:brca_icogs_qc}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{cad_qc}}
-	\caption{Standard deviations inferred from the CAD GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\caption{Standard deviations inferred from the CAD GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 	\label{fig:cad_qc}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{mdd_qc}}
-	\caption{Standard deviations inferred from the MDD GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\caption{Standard deviations inferred from the MDD GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 	\label{fig:mdd_qc}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{prca_qc}}
-	\caption{Standard deviations inferred from the PRCA GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random. [TODO: REEXPORT FIGURE]}
+	\caption{Standard deviations inferred from the PRCA GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 	\label{fig:prca_qc}
 \end{figure}
 
@@ -199,13 +208,13 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{t1d_affy_qc}}
-	\caption{Standard deviations inferred from the T1D (Affymetrix) GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\caption{Standard deviations inferred from the T1D (Affymetrix) GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 	\label{fig:t1d_affy_qc}
 \end{figure}
 
 \begin{figure}[p]
 \centerline{\includegraphics[width=0.95\textwidth]{t1d_illu_qc}}
-\caption{Standard deviations inferred from the T1D (Illumina) GWAS summary statistics versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+\caption{Standard deviations inferred from the T1D (Illumina) GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
 \label{fig:t1d_illu_qc}
 \end{figure}
 
@@ -214,19 +223,19 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.75\textwidth]{res-cad}}
+	\centerline{\includegraphics[width=0.7\textwidth]{res-cad}}
 	\caption{Raw partial correlations (for \textit{all} models) for predicting CAD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_cad}
 \end{figure}
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.75\textwidth]{res-mdd}}
+	\centerline{\includegraphics[width=0.7\textwidth]{res-mdd}}
 	\caption{Raw partial correlations (for \textit{all} models) for predicting MDD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_mdd}
 \end{figure}
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.75\textwidth]{res-prca}}
+	\centerline{\includegraphics[width=0.7\textwidth]{res-prca}}
 	\caption{Raw partial correlations (for \textit{all} models) for predicting PRCA in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_prca}
 \end{figure}
@@ -273,22 +282,13 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\FloatBarrier
-
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
-	\caption{Histogram of the imputation INFO scores of the 40,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
-\end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %\clearpage
 
 \FloatBarrier
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
-	\caption{For one simulation, scores from validation vs.\ scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values when computing local false discovery rates.}
+	\caption{For one simulation, scores from validation versus scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values when computing local false discovery rates.}
 	\label{fig:pseudoval}
 \end{figure}
 
