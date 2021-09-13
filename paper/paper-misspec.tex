@@ -92,22 +92,25 @@
 
 \section{Introduction}
 
-Multiple studies have shown that LDpred2 and lassosum are consistently ranking best among methods for polygenic prediction \cite[]{mak2017polygenic,prive2020ldpred2,pain2021evaluation,kulm2021systematic}.
-These two methods can be widely used because they require only summary statistics from genome-wide association studies (GWAS), as opposed to individual-level genotypes and phenotypes.
-However, GWAS summary statistics come with different qualities, such as the imputation qualities of each variant reported. They also come with some heterogeneity in the methods used for performing the different GWAS and meta-analyses, as well as the information reported in the summary statistics.
-LDpred2, as many other Bayesian polygenic methods \cite[]{ge2019polygenic,lloyd2019improved}, uses a Gibbs sampler, which is known to be sensitive to model misspecifications [TODO: @JULYAN, GOOD REFS FOR THAT?].
-Previously, to make sure that input parameters passed to LDpred2 (and especially its ``auto'' version) were consistent with what LDpred2 was expecting, we proposed a quality control (QC) based on comparing standard deviations derived from GWAS summary statistics with the ones from a reference panel \cite[]{prive2020ldpred2}.
+Contrary to individual-level genotypes and phenotypes, summary statistics from genome-wide association studies (GWAS) are widely available.
+Therefore, they have been extensively used e.g.\ to derive polygenic scores (PGS).
+However, GWAS summary statistics come with uneven qualities, such as the imputation qualities of each variant reported. 
+There is also some heterogeneity in the methods used for performing the individual GWAS and their meta-analyses, as well as the information reported in the resulting summary statistics.
+Moreover, many PGS methods such as PRS-CS, SBayesR, and LDpred2 \cite[]{ge2019polygenic,lloyd2019improved,prive2020ldpred2} use Bayesian models, which can be sensitive to model misspecifications \cite[]{WALKER20131621,miller2018robust}.
+Previously, to make sure that input parameters passed to LDpred2 were consistent with its modeling assumptions, we proposed a quality control (QC) based on comparing standard deviations derived from GWAS summary statistics with the ones from a reference panel \cite[]{prive2020ldpred2}.
+This was particularly important for LDpred2-auto, which also estimates key model parameters from the data directly.
 
-Here, we further investigate some of the possible misspecifications that come with the use of GWAS summary statistics. 
-We aim at identifying and correcting multiple sources of misspecifications in the summary statistics in order to improve the predictive performance of polygenic scores.
-We work on three different angles.
-First, based on other information such as the imputation INFO scores and allele frequencies from the GWAS summary statistics, we refine the QC we proposed in \cite{prive2020ldpred2}.
+Here, we investigate some of the possible misspecifications that come with GWAS summary statistics. 
+We aim to identify and correct multiple sources of misspecification in the summary statistics in order to improve the predictive performance of polygenic scores.
+We approach this from three different angles.
+First, based on additional information such as the imputation INFO scores and allele frequencies from the GWAS summary statistics, we refine our previously proposed QC \cite{prive2020ldpred2}.
 For instance, we show that standard deviations of imputed genotypes (allele dosages) are lower than the expected values under Hardy-Weinberg equilibrium.
-Second, we investigate possible corrections to apply to the input parameters of polygenic methods, namely the LD (linkage disequilibrium) reference, the GWAS effect sizes, their standard errors and the corresponding sample sizes.
-For example, we show that GWAS effect sizes computed from imputed dosages are larger than if true genotypes were available.
-Third, we introduce small changes to LDpred2 to make it more robust to these misspecifications.
-For further investigations, we also reimplement a new version of lassosum, called lassosum2, that uses the exact same input parameters as LDpred2, and test the QCs and corrections for lassosum2 as well.
-We first perform our investigations in simulations, then we use published summary statistics while restricting to the widely-used HapMap3 variants, finally we investigate two alternative sets with more variants.
+Second, we investigate possible corrections to apply to the input parameters of polygenic methods, namely the reference LD (linkage disequilibrium) matrix, the GWAS effect sizes, their standard errors and the corresponding sample sizes.
+For example, we show that GWAS effect sizes computed from imputed dosages are larger in magnitude compared to if true genotypes were available.
+Third, we introduce two new optional parameters in LDpred2-auto to make it more robust to these types of misspecification.
+We focus our investigations on LDpred2 and lassosum for two reasons. First, multiple studies have shown that LDpred2 and lassosum are consistently ranking best among methods for polygenic prediction \cite[]{mak2017polygenic,prive2020ldpred2,pain2021evaluation,kulm2021systematic}.
+Second, we reimplement and use a new version of lassosum, called lassosum2, that uses the exact same input parameters as LDpred2, which makes it easy for us to test the QCs and corrections presented here.
+We perform our investigations using simulations first, then we use public summary statistics while restricting to the widely-used HapMap3 variants, finally we investigate two alternative sets with more variants.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -166,7 +169,6 @@ Moreover, new additions for robustness introduced before, namely LDpred2-low-h2,
 
 In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
 
-[SHOULD I USE ``INFO'' INSTEAD? BUT I NEED TO RERUN EVERYTHING BECAUSE I CAN'T JUST POSTPROCESS RESULTS. AND NOT BETTER FOR LDPRED2-LOW-H2 AND LDPRED2-AUTO-ROB]
 
 \begin{figure}[h]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
@@ -220,9 +222,9 @@ Using the ``maxtag'' set generally provides larger predictive performance than u
 
 \section{Discussion}
 
-Here we have investigated misspecifications in GWAS summary statistics, including when they are derived from imputed data, and when the information on sample size per variant is different for all variants because of meta-analysis.
+We have investigated misspecifications in GWAS summary statistics, focusing on the impact of sample size heterogeneity and imputation quality.
 Previously, we proposed a quality control (QC) based on comparing standard deviations derived from GWAS summary statistics with the ones from a reference panel \cite[]{prive2020ldpred2}.
-Here we show that we can refine this quality control by deriving the second standard deviations directly from the reported allele frequencies in the GWAS summary statistics, and by correcting for the INFO scores of the GWAS (e.g.\ see figure \ref{fig:brca_onco_qc}).
+Here we show that we can refine this quality control by deriving the latter directly from the reported allele frequencies in the GWAS summary statistics, and by correcting the former using the GWAS imputation INFO scores (e.g.\ see figure \ref{fig:brca_onco_qc}).
 Using this refined QC, we are able to identify a potential issue with how principal components were derived in a set of breast cancer summary statistics. Fortunately, this has practically no effect on the predictive performance of the derived polygenic scores.
 Additional QC can also be performed, e.g.\ comparing reported GWAS allele frequencies with the ones from the LD reference panel, e.g.\ to detect genotyping or allelic errors.
 We do perform this additional QC as part of ``qc2'' here, and also when designing the large set of variants from the UK Biobank (Methods). 
@@ -231,15 +233,16 @@ One can also run other QC tools such as DENTIST \cite[]{chen2021improved}.
 Note that, in this study, we use summary statistics that include extended information (e.g.\ INFO scores and allele frequencies), yet most GWAS summary statistics do not. 
 We acknowledge that, in the case of a meta-analysis from multiple studies, providing a single INFO score per variant may not be possible; would a weighted averaged INFO score work?
 Nevertheless, this quality control could be easily performed within each study before pooling results, to make sure that summary statistics have the best possible quality for follow-up analyses such as deriving polygenic scores.
-Another information, the effective sample size per variant, is often missing from GWAS summary statistics. Even the total effective sample size is sometimes difficult to assess. Indeed, often only the total number of cases and controls are reported in the abstract of GWAS papers, where reported numbers possibly includes sizes before QC; therefore one has to dig into supplementary materials to find this information.
-We also recall that if some studies of a meta-analysis have an imbalanced number of cases and controls, the global effective sample size should not be computed from the total numbers of cases and controls overall, but instead from the sum of each effective sample size.
+Another information, the effective sample size per variant, is often missing from GWAS summary statistics. 
+Sometimes, it can even be challenging to recover the total effective sample size from large meta-analyses.
+We recall that if some studies of a meta-analysis have an imbalanced number of cases and controls, the global effective sample size should not be computed from the total numbers of cases and controls overall, but instead from the sum of the effective sample sizes of each study.
 Indeed, take the extreme example of meta-analyzing two studies, one with 1000 cases and 0 controls, and another one with 0 cases and 1000 controls, then the effective sample size of the meta-analysis is 0, not 2000.
-Fortunately, an overestimated sample size can be detected from the QC plot we propose (where the slope is then less than 1) for case-control studies using logistic regression; otherwise the standard deviation of the phenotype is also needed (Equation \ref{eq:approx-sd-lin}), but can be estimate \cite[]{prive2020ldpred2}.
+Fortunately, an overestimated sample size can be detected from the QC plot we propose, where the slope is then less than 1 for case-control studies using logistic regression; otherwise the standard deviation of the phenotype is also needed (Equation \ref{eq:approx-sd-lin}), but can be estimated \cite[]{prive2020ldpred2}.
 
 We have assessed the impact of these misspecifications in GWAS summary statistics on the predictive performance of some polygenic score methods.
 Using both the Bayesian LDpred2 models \cite[]{prive2020ldpred2} and our reimplementation of the frequentist lassosum model \cite[]{mak2017polygenic} for deriving polygenic scores, we have introduced and investigated some changes to possibly make these models more robust to misspecifications.
-Overall, these changes have provided large improvements of predictive performance in simulations with large misspecifications. However, they have almost no effect when using the published GWAS summary statistics, except for breast cancer and coronary artery disease summary statistics.
-This is slightly disappointing, but more importantly it is also reassuring because it means that the summary statistics we use in this study are usually of good quality for follow-up analyses such as deriving polygenic scores.
+Overall, these changes have provided large improvements of predictive performance in simulations with large misspecifications. However, they have almost no effect when using the real GWAS summary statistics we chose, except for breast cancer and coronary artery disease summary statistics.
+Although these results are somewhat unfortunate, they are reassuring because it means that the summary statistics we use in this study are usually of good quality for follow-up analyses such as deriving polygenic scores.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
