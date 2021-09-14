@@ -79,9 +79,10 @@
 
 \noindent Contact: \url{florian.prive.21@gmail.com}
 
-\vspace*{5em}
+\vspace*{8em}
 
 \abstract{
+	Are genome-wide association studies (GWAS) summary statistics of good enough quality for performing follow-up analyses? Can we detect possible misspecifications in GWAS summary statistics and correct for them in order to improve predictive performance of polygenic scores?
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,18 +93,18 @@
 
 \section{Introduction}
 
-Contrary to individual-level genotypes and phenotypes, summary statistics from genome-wide association studies (GWAS) are widely available.
+Contrary to individual-level genotypes and phenotypes, summary statistics resulting from genome-wide association studies (GWAS) are widely available.
 Therefore, they have been extensively used e.g.\ to derive polygenic scores (PGS).
 However, GWAS summary statistics come with uneven qualities, such as the imputation qualities of each variant reported. 
 There is also some heterogeneity in the methods used for performing the individual GWAS and their meta-analyses, as well as the information reported in the resulting summary statistics.
 Moreover, many PGS methods such as PRS-CS, SBayesR, and LDpred2 \cite[]{ge2019polygenic,lloyd2019improved,prive2020ldpred2} use Bayesian models, which can be sensitive to model misspecifications \cite[]{WALKER20131621,miller2018robust}.
-Previously, to make sure that input parameters passed to LDpred2 were consistent with its modeling assumptions, we proposed a quality control (QC) based on comparing standard deviations derived from GWAS summary statistics with the ones from a reference panel \cite[]{prive2020ldpred2}.
-This was particularly important for LDpred2-auto, which also estimates key model parameters from the data directly.
+Previously, to make sure that input parameters passed to LDpred2 were consistent with its modeling assumptions, we proposed a quality control (QC) based on comparing standard deviations inferred from GWAS summary statistics with the ones computed from a reference panel \cite[]{prive2020ldpred2}.
+This was particularly important for LDpred2-auto, which directly estimates key model parameters from the data.
 
 Here, we investigate some of the possible misspecifications that come with GWAS summary statistics. 
 We aim to identify and correct multiple sources of misspecification in the summary statistics in order to improve the predictive performance of polygenic scores.
 We approach this from three different angles.
-First, based on additional information such as the imputation INFO scores and allele frequencies from the GWAS summary statistics, we refine our previously proposed QC \cite{prive2020ldpred2}.
+First, based on additional summary information such as the imputation INFO scores and allele frequencies from the GWAS summary statistics, we refine our previously proposed QC \cite{prive2020ldpred2}.
 For instance, we show that standard deviations of imputed genotypes (allele dosages) are lower than the expected values under Hardy-Weinberg equilibrium.
 Second, we investigate possible corrections to apply to the input parameters of polygenic methods, namely the reference LD (linkage disequilibrium) matrix, the GWAS effect sizes, their standard errors and the corresponding sample sizes.
 For example, we show that GWAS effect sizes computed from imputed dosages are larger in magnitude compared to if true genotypes were available.
@@ -131,7 +132,7 @@ When using the total GWAS sample size instead of the per-variant sample sizes, p
 This extreme simulation scenario shows that LDpred2 can be sensitive to GWAS sample size misspecification, whereas lassosum (and lassosum2) seems little affected by this.
 
 \begin{figure}[h]
-	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN}}
+	\centerline{\includegraphics[width=0.98\textwidth]{simu-misN}}
 	\caption{Results for the simulations with sample size misspecification, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants,  ``imputed'' (Methods), or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks (Methods).}
 	\label{fig:simu-misN}
 \end{figure}
@@ -171,7 +172,7 @@ In the real data applications hereinafter, we choose to use the first correction
 
 
 \begin{figure}[h]
-	\centerline{\includegraphics[width=0.95\textwidth]{simu-info}}
+	\centerline{\includegraphics[width=0.98\textwidth]{simu-info}}
 	\caption{Results of predictive performance for the simulations using GWAS summary statistics from imputed dosage data, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Correction ``sqrt\_info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$.
 	Correction ``info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$  and $N \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$, and $N \cdot \text{INFO}_j$. Red bars correspond to using the LD with independent blocks (Methods).}
 	\label{fig:simu-info}
@@ -186,10 +187,10 @@ For both summary statistics, we first compare the standard deviations inferred f
 When coloring by INFO scores, we see a clear trend with sd\_ss being lower than sd\_af as INFO decreases; indeed, using $\text{sd\_ss} / \sqrt{\text{INFO}}$ provides a very good fit for sd\_af, except for some variants of chromosome 6 and 8 for the OncoArray summary statistics (Figures \ref{fig:brca_onco_qc} and \ref{fig:brca_icogs_qc}). Most of these outlier variants are in regions 25-33 Mbp of chromosome 6 and 8-12 Mbp of chromosome 8 (Figure \ref{fig:hist-bad-pos}), which are two known long-range LD regions \cite[]{price2008long}.
 We hypothesize that this is due to using principal components (PCs) as covariates in GWAS that capture LD structure instead of population structure \cite[]{prive2020efficient}.
 To validate this hypothesis, we simulate a phenotype using HapMap3 variants of chromosome 6 for 10,000 individuals from the UK Biobank, then we run GWAS with or without PC19 as covariate. PC19 from the UK Biobank was previously reported to capture LD structure in region 70-91 Mbp of chromsome 6 \cite[]{prive2020efficient}.
-In these simulations, the same bias as in figure \ref{fig:hist-bad-pos}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), confirming our hypothesis.
+In these simulations, the same bias as in figure \ref{fig:brca_onco_qc}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), confirming our hypothesis.
 
 \begin{figure}[h]
-	\centerline{\includegraphics[width=0.95\textwidth]{brca_onco_qc}}
+	\centerline{\includegraphics[width=0.98\textwidth]{brca_onco_qc}}
 	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics (Equation \ref{eq:approx-sd-log}) versus the ones inferred from the reported GWAS allele frequencies ($\sqrt{2 f (1 - f)}$). Only 100,000 HapMap3 variants are represented, at random.}
 	\label{fig:brca_onco_qc}
 \end{figure}
@@ -202,7 +203,7 @@ Although results for both QC used are very similar, correcting for the INFO scor
 All other improvements introduced before have little or no effect here, probably because misspecifications are much smaller than in the simulations.
 
 \begin{figure}[h]
-	\centerline{\includegraphics[width=0.95\textwidth]{res-brca}}
+	\centerline{\includegraphics[width=0.98\textwidth]{res-brca}}
 	\caption{Raw partial correlations (for \textit{all} models) for predicting breast cancer in the UK Biobank when using either the OncoArray or the iCOGS summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
 	\label{fig:res_brca}
 \end{figure}
@@ -212,10 +213,9 @@ All other improvements introduced before have little or no effect here, probably
 We use external summary statistics for which INFO scores are reported (Table \ref{tab:sumstats}); they all have a very high mean INFO score (larger than 0.94), except for BRCA-iCOGS (0.841) and T1D-affy (0.885).
 QC plots comparing standard deviations usually show little deviation from $x=y$ (after the INFO score correction), except for coronary artery disease (CAD) summary statistics (Figures \ref{fig:brca_icogs_qc}-\ref{fig:t1d_illu_qc}).
 We show previous results as figure \ref{fig:res_brca} for other phenotypes in figures \ref{fig:res_cad}-\ref{fig:res_t1d}; most changes introduced before have little or no impact on the predictions, except for the second quality control performed for CAD when using LDpred2-auto (Figure \ref{fig:res_cad}).
-
-We then introduce two new sets of variants as possible replacement of HapMap3 variants (Methods).
+We then introduce two new sets of variants as possible replacement for HapMap3 variants (Methods).
 These sets include more variants (more than 2M), therefore possibly of lower quality on average. 
-We show results with these two new sets of variants (Methods) in figures \ref{fig:res_brca_all}-\ref{fig:res_t1d_all}.
+We present similar results with these two new sets of variants in figures \ref{fig:res_brca_all}-\ref{fig:res_t1d_all}.
 Using the ``maxtag'' set generally provides larger predictive performance than using HapMap3 variants, especially when predicting prostate cancer (Figure \ref{fig:res_prca_all}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -223,7 +223,7 @@ Using the ``maxtag'' set generally provides larger predictive performance than u
 \section{Discussion}
 
 We have investigated misspecifications in GWAS summary statistics, focusing on the impact of sample size heterogeneity and imputation quality.
-Previously, we proposed a quality control (QC) based on comparing standard deviations derived from GWAS summary statistics with the ones from a reference panel \cite[]{prive2020ldpred2}.
+Previously, we proposed a quality control (QC) based on comparing standard deviations inferred from GWAS summary statistics with the ones computed from a reference panel \cite[]{prive2020ldpred2}.
 Here we show that we can refine this quality control by deriving the latter directly from the reported allele frequencies in the GWAS summary statistics, and by correcting the former using the GWAS imputation INFO scores (e.g.\ see figure \ref{fig:brca_onco_qc}).
 Using this refined QC, we are able to identify a potential issue with how principal components were derived in a set of breast cancer summary statistics. Fortunately, this has practically no effect on the predictive performance of the derived polygenic scores.
 Additional QC can also be performed, e.g.\ comparing reported GWAS allele frequencies with the ones from the LD reference panel, e.g.\ to detect genotyping or allelic errors.
@@ -232,7 +232,7 @@ One can also run other QC tools such as DENTIST \cite[]{chen2021improved}.
 
 Note that, in this study, we use summary statistics that include extended information (e.g.\ INFO scores and allele frequencies), yet most GWAS summary statistics do not. 
 We acknowledge that, in the case of a meta-analysis from multiple studies, providing a single INFO score per variant may not be possible; would a weighted averaged INFO score work?
-Nevertheless, this quality control could be easily performed within each study before pooling results, to make sure that summary statistics have the best possible quality for follow-up analyses such as deriving polygenic scores.
+Nevertheless, this quality control could be performed within each study before pooling results, to make sure that summary statistics have the best possible quality for follow-up analyses such as deriving polygenic scores.
 Another information, the effective sample size per variant, is often missing from GWAS summary statistics. 
 Sometimes, it can even be challenging to recover the total effective sample size from large meta-analyses.
 We recall that if some studies of a meta-analysis have an imbalanced number of cases and controls, the global effective sample size should not be computed from the total numbers of cases and controls overall, but instead from the sum of the effective sample sizes of each study.
