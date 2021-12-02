@@ -36,6 +36,7 @@ dist <- bigutilsr::dist_ogk(as.matrix(df0[sub, -(1:2)]))
 hist(log(dist), "FD")
 sub2 <- sub[log(dist) < 5]
 length(sub2) # 362,307
+# saveRDS(ind.indiv[sub2], "tmp-data/eur_ind_bgen.rds")
 
 
 # Validation set
