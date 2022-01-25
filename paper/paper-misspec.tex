@@ -118,7 +118,7 @@ We perform our investigations using simulations first, then we use public summar
 			p{\dimexpr0.5\textwidth-2\tabcolsep-\arrayrulewidth\relax}|
 			p{\dimexpr0.3\textwidth-2\tabcolsep-\arrayrulewidth\relax}|}
 		\hline
-		Misspecification & Possible consequence & Possible correction \\
+		Misspecification & Possible consequence(s) & Possible correction \\
 		\hline
 		\hline
 		Global sample size misspecification$^{(1)}$ & Bias estimation of SNP heritability \cite[]{gazal2018functional,grotzinger2021pervasive} & Estimation of the effective sample size \\
@@ -127,18 +127,18 @@ We perform our investigations using simulations first, then we use public summar
 		\hline
 		Using imputed dosages for GWAS & Standard deviations of dosages are smaller, resulting in overestimated effect sizes and standard errors & See section \ref{sec:imputation} \\
 		\hline
-		Using imputed dosages for LD computation & Overestimated LD [TODO: ALSO VERIFY WITH 1000G] & See correction in section \ref{sec:LD} \\
+		Using imputed dosages for LD computation & LD seems correctly estimated (Figure \ref{fig:compare-cor}) & None required \\
 		\hline 
 		Ancestry mismatch between summary statistics and LD & Strong mismatch of LD and allele frequencies, often resulting in divergence of models & Check ancestry proportions from GWAS summary statistics \cite[]{prive2021using} \\
 		\hline
-		Error in summary statistics (e.g.\ allele inversions) & Strong violation of model assumptions, which can result in e.g.\ identifying false-positives in fine-mapping \cite[]{susie} & Appropriate quality control \\
+		Error in summary statistics (e.g.\ allele inversions) & Strong violation of model assumptions, which can result in e.g.\ identifying false-positives in fine-mapping \cite[]{susie} & Quality control \\
 		\hline
-		Any & Violation of model assumptions and bad model convergence & Using more regularization \\
+		Any & Violation of model assumptions resulting in poor model convergence & Using more regularization \\
 		\hline
 	\end{tabular}
 	\caption{Overview of possible misspecifications when using GWAS summary statistics. 
 	$^{(1)}$ Examples: using the global number of cases and controls in a meta-analysis of binary traits, an often larger effective sample size when using BOLT-LMM summary statistics \cite[]{loh2018mixed}, and a reduced effective sample size when using SAIGE on binary traits with low case-control imbalance \cite[]{zhou2018efficiently,mbatchou2021computationally}. 
-	$^{(2)}$ E.g.\ removeing SNPs with an effective sample size less than 0.67 times the 90th percentile of sample size \cite[]{zheng2017ld}.
+	$^{(2)}$ E.g.\ removing SNPs with an effective sample size less than 0.67 times the 90th percentile of sample size \cite[]{zheng2017ld}.
 	\label{tab:overview}}
 \end{table}
 
@@ -361,7 +361,7 @@ n_j^\text{eff} \approx \dfrac{4 / \text{var}(G_j) - \hat{\gamma}_j^2}{\text{se}(
 In practice, we also bound this estimate to be between $0.5 \cdot N$ and $1.1 \cdot N$, where $N$ is the global sample size.
 
 
-\subsection{New implementation of lassosum in bigsnpr}
+\subsection{New implementation of lassosum in bigsnpr}\label{lassosum2}
 
 Instead of using a regularized version of the correlation matrix $R$ parameterized by $s$, $R_s = (1 - s) R + s I$ (where $0 < s \leq 1$), we use $R_{\delta} = R + \delta I$ (where $\delta > 0$), which makes it clearer that lassosum is also using L2-regularization (therefore elastic-net). 
 Then, from \cite{mak2017polygenic}, the solution from lassosum can be obtained by iteratively updating 
@@ -391,13 +391,12 @@ Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse corre
 
 \subsection{New LD reference}\label{sec:LD}
 
-We make three changes to the LD reference. 
-First, when using imputed data, we multiply the correlation between variants $j$ and $k$ by $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$) since it approximates well the correlation from non-imputed data (Figure \ref{fig:compare-cor}).
-Second, we also define nearly independent LD blocks using the optimal algorithm developed in \cite{prive2021optimal}.
-For different numbers of blocks and maximum number of variants in each block, we use the split with the minimum cost within the ones reducing the original number of non-zero values to less than 60\% (70\% for chromosome 6).
+We define nearly independent LD blocks using the optimal algorithm developed in \cite{prive2021optimal}.
+For different numbers of blocks and maximum number of variants in each block, we use the split with the minimum cost within the ones reducing the original number of non-zero values to less than 60\% (or 70\% for chromosome 6).
 Having a correlation matrix with independent blocks prevents the small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) from propagating to too many variants.
 It also makes running LDpred2 (and lassosum2) faster, taking about 60\% of the initial time (since only 60\% of the initial non-zero values of the correlation matrix are kept).
-Finally, we have developed a new ``compact'' format for the SFBMs (sparse matrices on disk). Instead of using something similar to the standard ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$ up to the last non-zero value for this column $j$. This makes this format about twice as efficient for both LDpred2 and lassosum2.
+
+We have also developed a new ``compact'' format for the SFBMs (sparse matrices on disk). Instead of using something similar to the standard ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$ up to the last non-zero value for this column $j$. This makes this format about twice as efficient for both LDpred2 and lassosum2.
 
 \subsection{LDpred2-low-h2 and LDpred2-auto-rob}
 
@@ -405,7 +404,7 @@ Here we introduce the small changes made to LDpred2 (-grid and -auto) in order t
 First, LDpred2-low-h2 simply consists in running LDpred2-grid by testing $h^2$ within $\{0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$ (note the added $0.3$ compared to \cite{prive2020ldpred2}), where $h^2_\text{LDSC}$ is the heritability estimate from LD score regression. Indeed, we show in simulations here that using lower values for $h^2$ may provide higher predictive performance in the case of misspecifications (thanks to more shrinkage of the effects).
 In simulations, because of the large misspecifications, we use a larger grid over $\{0.01, 0.1, 0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$.
 
-For LDpred2-auto, we introduce two new parameters. The first one, \texttt{shrink\_corr}, allows for shrinking off-diagonal elements of the correlation matrix. This is similar to parameter `s' in lassosum, and act as a regularization. We use a value of 0.9 in simulations and 0.95 in real data when running ``LDpred2-auto-rob'' (and the default value of 1, without any effect, when running ``LDpred2-auto'').
+For LDpred2-auto, we introduce two new parameters. The first one, \texttt{shrink\_corr}, allows for shrinking off-diagonal elements of the correlation matrix. This is similar to parameter `s' in lassosum (Section \ref{lassosum2}), and act as a means of regularization. We use a value of 0.9 in simulations and 0.95 in real data when running ``LDpred2-auto-rob'' (and the default value of 1, without any effect, when running ``LDpred2-auto'').
 The second new parameter, \texttt{allow\_jump\_sign}, controls whether variants can change sign over two consecutive iterations of the Gibbs sampler. When setting this parameter to false (in the method we name ``LDpred2-auto-rob'' here), this forces the effects to go through 0 before changing sign. This is useful to prevent instability (oscillation and ultimately divergence) of the Gibbs sampler under large misspecifications, and is also useful for accelerating convergence of chains with a large initial value for $p$, the proportion of causal variants.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

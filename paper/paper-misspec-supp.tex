@@ -299,7 +299,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{compare-cor}}
-	\caption{Comparing correlations between a subset of HapMap3 variants on chromosome 22, computed in three different ways: 1/ from imputed dosages; 2/ from multiple imputation (i.e.\ generating multiple complete datasets sampled according to imputation probabilities, computing correlations, and averaging results); from imputed dosages with the multiplicative correction of $\sqrt{\text{INFO}_j \cdot \text{INFO}_k}$ (for $j \neq k$).}
+	\caption{Comparing correlations between a subset of HapMap3 variants on chromosome 1 with an INFO score lower than 0.85, computed in three different ways: 1/ from imputed dosages using 10,000 individuals from the UK Biobank (UKBB) data; 2/ from multiple imputation (i.e.\ generating multiple complete datasets sampled according to imputation probabilities, computing correlations, and averaging results) also using UKBB; 3/ from 190 individuals from the 1000 Genomes data (GBR and CEU). Each point, representing the correlation between two variants, is colored by the geometric mean of the INFO scores of these two variants.}
 	\label{fig:compare-cor}
 \end{figure}
 
