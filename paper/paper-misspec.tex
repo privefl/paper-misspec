@@ -214,7 +214,7 @@ For lassosum2 and LDpred2(-grid), which tune parameters using the validation set
 However, correcting for imputation quality can dramatically improve predictive performance for LDpred2-auto, provided the imputation quality is well estimated. 
 Moreover, new additions for robustness introduced before, namely LDpred2-low-h2, LDpred2-auto-rob, and forming independent blocks in the LD matrix also improve predictive performance for all corrections (Figure \ref{fig:simu-info}).
 
-In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$. [TODO: TRY THEM ALL AGAIN? AND META-ANALYZE (BRCA AND T1D)?]
+In the real data applications hereinafter, we choose to use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
 
 
 \begin{figure}[h]
@@ -272,11 +272,11 @@ We show previous results as figure \ref{fig:res_brca} for other phenotypes in fi
 
 \section{Discussion}
 
-We have investigated misspecifications in GWAS summary statistics, focusing on the impact of sample size heterogeneity and imputation quality.
+We have investigated misspecifications in GWAS summary statistics, focusing particularly on the impact of sample size heterogeneity and imputation quality, and the application to polygenic scores (PGS) methods.
 Previously, we proposed a quality control (QC) based on comparing standard deviations (of genotypes) inferred from GWAS summary statistics with the ones computed from a reference panel \cite[]{prive2020ldpred2}.
 Here we show that we can refine this QC by deriving the latter directly from the reported allele frequencies in the GWAS summary statistics, and by correcting the former using the GWAS imputation INFO scores (e.g.\ see figure \ref{fig:brca_onco_qc}).
 Using this refined QC, we are able to identify a potential issue with how principal components were derived in a set of breast cancer summary statistics. Fortunately, this has practically no effect on the predictive performance of the derived polygenic scores.
-Additional QC can also be performed, e.g.\ comparing reported GWAS allele frequencies with the ones from the LD reference panel, e.g.\ to detect genotyping or allelic errors.
+Additional QC can also be performed, e.g.\ comparing reported GWAS allele frequencies with the ones from the LD reference panel, e.g.\ to detect genotyping errors or allele inversions.
 We do perform this additional QC as part of ``qc2'' here. 
 One can also run other QC tools such as DENTIST \cite[]{chen2021improved}, and also infer ancestry proportions from summary statistics to make sure these are matching with the LD reference used \cite[]{prive2021using}. 
 
@@ -295,8 +295,13 @@ Using both the Bayesian LDpred2 models \cite[]{prive2020ldpred2} and our reimple
 Overall, these changes have provided large improvements of predictive performance in simulations with large misspecifications. However, they have almost no effect when using the real GWAS summary statistics we chose, except for breast cancer and coronary artery disease summary statistics.
 Although these results are somewhat unfortunate, they are reassuring because it means that the summary statistics we use in this study are usually of good quality for follow-up analyses such as deriving polygenic scores.
 
-[TODO: PRS-CS REGU + SMALL LD REF UNMATCHED WITH ANCESTRY + LD BLOCKS]
-[LD BLOCKS MAINLY FOR SCALA BUT SHOW THAT USEFUL FOR ROBUSTNESS]
+Anyway, we recommend to adopt these changes, i.e.\ performing the (refined) QC proposed here, defining LD blocks in the LD matrix, and using more regularization when needed (i.e.\ also testing smaller values for the heritability parameter in LDpred2-grid, and using the two new parameters in LDpred2-auto (Section \ref{sec:robust}). 
+Note that LD blocks are widely used already by several methods (e.g.\ lassosum and PRS-CS) because they allow for processing smaller matrices at once \cite[]{mak2017polygenic,ge2019polygenic}; here we have shown that these blocks are also useful to make methods more robust.
+PRS-CS is one of the most robust PGS methods out there; for example, it can use the (small) 1000 Genomes data as LD reference \cite[]{ge2019polygenic}, and can even use an European LD reference panel with multi-ancestry GWAS summary statistics \cite[]{wang2021global}.
+We think this is made possible by the use of a (very) strong regularization in PRS-CS ($\phi^{-1} \psi_j^{-1} \ge 1$, which would approximately corresponds to using $s=0.5$ in lassosum, $\delta = 1$ in lassosum2, and $\texttt{shrink\_corr}=0.5$ in LDpred2-auto).
+Using enough regularization is good for robustness, but note that using too much regularization can also damage predictive performance, and should not be a replacement for a proper QC and choice of ancestry-matched LD [TODO: A BIT AGGRESSIVE?].
+As a future direction, we are interested in using ancestry-matched LD matrices to improve polygenic prediction in all ancestries.
+Also it would be useful to investigate the impact of the QC and adjustments we propose here on other (non-PGS) methods, such as the ones for inference, where robustness is likely to be very important as well.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -404,7 +409,7 @@ It also makes running LDpred2 (and lassosum2) faster, taking about 60\% of the i
 
 We have also developed a new ``compact'' format for the SFBMs (sparse matrices on disk). Instead of using something similar to the standard ``compressed sparse column'' format which stores all $\{i,~x(i, j)\}$ for a given column $j$, we only store the first index $i_0$ and all the contiguous values $\{x(i_0, j),~x(i_0 + 1, j),~\dots\}$ up to the last non-zero value for this column $j$. This makes this format about twice as efficient for both LDpred2 and lassosum2.
 
-\subsection{LDpred2-low-h2 and LDpred2-auto-rob}
+\subsection{LDpred2-low-h2 and LDpred2-auto-rob}\label{sec:robust}
 
 Here we introduce the small changes made to LDpred2 (-grid and -auto) in order to make them more robust.
 First, LDpred2-low-h2 simply consists in running LDpred2-grid by testing $h^2$ within $\{0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$ (note the added $0.3$ compared to \cite{prive2020ldpred2}), where $h^2_\text{LDSC}$ is the heritability estimate from LD score regression. Indeed, we show in simulations here that using lower values for $h^2$ may provide higher predictive performance in the case of misspecifications (thanks to more shrinkage of the effects).
