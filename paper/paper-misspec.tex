@@ -225,6 +225,14 @@ In the real data applications hereinafter, we choose to use the first correction
 \end{figure}
 
 
+\subsection{Mismatch between LD reference and GWAS summary statistics}
+
+Here we design simulations to understand the impact of using a mismatched LD reference panel, e.g.\ that comes from a different population compared to the one used to compute the GWAS summary statistics.
+We use the same simulation setup as before (Methods).
+In addition, we design an alternative reference panel based on 10,000 individuals from South Europe by using the ``Italy'' center defined in \cite{prive2021high}.
+Averaged over 10 simulations, when using an ``alternative'' LD reference panel instead of well-matched one, squared correlations between the polygenic scores and the simulated phenotypes drop from 0.174 to 0.167 for lassosum2, from 0.168 to 0.147 for LDpred2(-grid), from 0.174 to 0.169 for LDpred2-low-h2, from 0.143 to 0.139 for LDpred2-auto, from 0.162 to 0.146 for LDpred2-auto-rob, and from 0.144 to 0.140 for LDpred2-inf (Figure \ref{fig:simu-altpop}).
+Defining LD blocks in these two LD matrices always helps, but do not improve performance by much when using the alternative LD.
+
 \subsection{Application to breast cancer summary statistics}
 
 Breast cancer summary statistics are interesting because they include results from two mega analyses \cite[]{michailidou2013large,michailidou2015genome,michailidou2017association}, which means there is some larger precision in the parameters reported in the GWAS summary statistics, such as the INFO scores and the sample sizes.
