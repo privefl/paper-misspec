@@ -14,7 +14,7 @@ files <- tibble(pheno = c(paste0("t1d_", c("affy", "illu")),
 library(future.batchtools)
 NCORES <- 30
 plan(batchtools_slurm(resources = list(
-  t = "12:00:00", c = NCORES + 2, mem = "80g",
+  t = "12:00:00", c = NCORES + 2, mem = "120g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
 furrr::future_pwalk(files, function(pheno, qc, name_corr) {

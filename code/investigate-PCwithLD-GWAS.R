@@ -7,7 +7,7 @@ ind_chr6 <- which(ukb$map$chromosome == 6)
 y <- snp_simuPheno(G, h2 = 0.2, M = 2000, ind.possible = ind_chr6)$pheno
 
 POS <- ukb$map$physical.pos[ind_chr6]
-is_in_bad_region <- (POS > 70e6) & (POS < 91e6)
+is_in_bad_region <- ifelse((POS > 70e6) & (POS < 91e6), "Yes", "No")
 
 gwas  <- big_univLinReg(G, y, ind.col = ind_chr6, ncores = nb_cores())
 gwas2 <- big_univLinReg(G, y, ind.col = ind_chr6, ncores = nb_cores(), covar.train = PC19)

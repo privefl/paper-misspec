@@ -1,26 +1,33 @@
 library(future.batchtools)
 plan(batchtools_slurm(resources = list(
-  t = "12:00:00", c = 2, mem = "50g",
+  t = "12:00:00", c = 6, mem = "125g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
+
+bigassertr::assert_dir("ldref")
 
 all_final_grp <- furrr::future_map_dfr(1:22, function(chr) {
 
-  corr0 <- readRDS(paste0("data/corr/chr", chr, ".rds"))
+  corr0 <- readRDS(paste0("../paper-ldpred2/ld-ref/LD_chr", chr, ".rds"))
   dim(corr0)
 
   library(bigsnpr)
+  library(furrr)
   all_splits <- runonce::save_run({
+
+    plan("multisession", workers = 5)
+    options(future.globals.maxSize = 10e9)
+
     SEQ <- round(seq_log(1000 + ncol(corr0) / 50,
                          5000 + ncol(corr0) / 10,
                          length.out = 10))
 
-    splits <- purrr::map_dfr(SEQ, function(max_size) {
+    splits <- future_map_dfr(SEQ, function(max_size) {
       res <- snp_ldsplit(corr0, thr_r2 = 0.02, min_size = 100,
                          max_size = max_size, max_K = 200)
       res$max_size <- max_size
       res
     })
-  }, file = paste0("tmp-data/split_corr_chr", chr, ".rds"))
+  }, file = paste0("tmp-data/split_ldref_chr", chr, ".rds"))
 
 
   library(ggplot2)
@@ -45,17 +52,18 @@ all_final_grp <- furrr::future_map_dfr(1:22, function(chr) {
   corr0T <- as(corr0, "dgTMatrix")
   corr0T@x <- ifelse(final_grp[corr0T@i + 1L] == final_grp[corr0T@j + 1L], corr0T@x, 0)
 
-  corr0T %>%
-    Matrix::drop0() %>%
-    as("symmetricMatrix") %>%
-    saveRDS(paste0("data/corr/adj_with_blocks_chr", chr, ".rds"))
+  new_corr0 <- runonce::save_run(
+    as(Matrix::drop0(corr0T), "symmetricMatrix"),
+    file = paste0("ldref/LD_with_blocks_chr", chr, ".rds")
+  )
 
   final_split
 })
+# <20 min after chr6
 
 plot(all_final_grp$n_block)
 plot(all_final_grp$cost)
 
-sum(file.size(paste0("data/corr/adj_with_blocks_chr", 1:22, ".rds"))) /
-  sum(file.size(paste0("data/corr/chr", 1:22, ".rds")))
-# 60.5%
+sum(file.size(paste0("ldref/LD_with_blocks_chr", 1:22, ".rds"))) /
+  sum(file.size(paste0("../paper-ldpred2/ld-ref/LD_chr", 1:22, ".rds")))
+# 60.6%

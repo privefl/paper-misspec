@@ -36,58 +36,63 @@ plot_grid2(list(
     coord_equal() +
     scale_color_viridis_c() +
     guides(color = guide_colorbar(barheight = 15, ticks.linewidth = 2)) +
-    labs(y = "SD_imp", x = "SD_true"),
+    labs(x = "Standard deviations of \"true\" genotypes",
+         y = "Standard deviations of imputed dosages"),
   qplot(scale_true$scale, scale_imp$scale / sqrt(INFO), color = INFO) +
     geom_abline(color = "red") +
     coord_equal() +
     scale_color_viridis_c() +
-    labs(y = "SD_imp / sqrt(INFO)", x = "SD_true")
-), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 16,
+    labs(x = "Standard deviations of \"true\" genotypes",
+         y = "Corrected standard deviations of imputed dosages")
+), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 18,
 title_ratio = 0, legend_ratio = 0.1)
-# ggsave("figures/compare-sd.png", width = 12.5, height = 5.5)
+# ggsave("figures/compare-sd.png", width = 12.5, height = 5.5, scale = 1.3)
 
 plot_grid2(list(
   qplot(gwas_imp$estim, gwas_true$estim, color = INFO) +
     geom_abline(color = "red") +
     scale_color_viridis_c() +
     guides(color = guide_colorbar(barheight = 15, ticks.linewidth = 2)) +
-    labs(x = "beta_imp", y = "beta_true"),
+    labs(x = "GWAS effect sizes from imputed dosages",
+         y = "GWAS effect sizes from \"true\" genotypes"),
   qplot(gwas_imp$estim * sqrt(INFO), gwas_true$estim, color = INFO) +
     geom_abline(color = "red") +
     scale_color_viridis_c() +
-    labs(x = "beta_imp * sqrt(INFO)", y = "beta_true")
-), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 16,
+    labs(x = "Corrected GWAS effect sizes from imputed dosages",
+         y = "GWAS effect sizes from \"true\" genotypes")
+), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 18,
 title_ratio = 0, legend_ratio = 0.1)
-# ggsave("figures/compare-beta.png", width = 12.5, height = 5.5)
+# ggsave("figures/compare-beta.png", width = 12.5, height = 5.5, scale = 1.3)
 
 plot_grid2(list(
   qplot(gwas_imp$std.err, gwas_true$std.err, color = INFO) +
     geom_abline(color = "red") +
     scale_color_viridis_c() +
     guides(color = guide_colorbar(barheight = 15, ticks.linewidth = 2)) +
-    labs(x = "beta_se_imp", y = "beta_se_true"),
+    labs(x = "SEs of GWAS effect sizes from imputed dosages",
+         y = "SEs of GWAS effect sizes from \"true\" genotypes"),
   qplot(gwas_imp$std.err * sqrt(INFO), gwas_true$std.err, color = INFO) +
     geom_abline(color = "red") +
     scale_color_viridis_c() +
-    labs(x = "beta_se_imp * sqrt(INFO)", y = "beta_se_true")
-), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 16,
+    labs(x = "Corrected SEs of GWAS effect sizes from imputed dosages",
+         y = "SEs of GWAS effect sizes from \"true\" genotypes")
+), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 18,
 title_ratio = 0, legend_ratio = 0.1)
-# ggsave("figures/compare-beta-se.png", width = 12.5, height = 5.5)
+# ggsave("figures/compare-beta-se.png", width = 12.5, height = 5.5, scale = 1.3)
 
 
 #### Multiple imputation ####
 
 ind <- seq(1, ncol(G_true), by = 10)
-d <- 10
-list_snp_id <- list(rep(each = d, with(simu_true$map[ind, ], {
-  paste(chromosome, physical.pos, allele1, allele2, sep = "_")
-})))
+snp_id <- with(simu_true$map[ind, ],
+               paste(chromosome, physical.pos, allele1, allele2, sep = "_"))
+d <- 20
 
 system.time({
   tmp <- tempfile(tmpdir = "tmp-data")
   rds <- snp_readBGEN(
     bgenfiles = "UKBB/bgen/ukb_imp_chr22_v3.bgen",
-    list_snp_id = list_snp_id,
+    list_snp_id = list(rep(snp_id, each = d)),
     backingfile = tmp,
     ind_row = simu_true$fam$ind_bgen[ind.gwas],
     ncores = NCORES,
@@ -97,8 +102,8 @@ system.time({
   gwas_samp <- big_univLinReg(G, y[ind.gwas], ncores = NCORES)
   file.remove(paste0(tmp, c(".bk", ".rds")))
 })
-# by 40 -> 151 sec
-# by 10 -> 592 sec
+# by 40 -> 5 min
+# by 10 -> 20 min
 
 #  https://doi.org/10.1371/journal.pgen.1006091
 all_betas <- matrix(gwas_samp$estim, ncol = d, byrow = TRUE)
@@ -116,6 +121,13 @@ qplot(lpval_MI, lpval_true[ind], color = INFO[ind], alpha = I(0.8)) +
   geom_abline(color = "red") +
   scale_color_viridis_c()
 
+SEQ <- seq(0.1, 0.5, by = 0.01)
+diff <- sapply(SEQ, function(power) crossprod(beta_se_MI - gwas_imp$std.err[ind] * INFO[ind]^power))
+plot(SEQ, diff)
+qplot(beta_se_MI, gwas_imp$std.err[ind] * INFO[ind]^0.17, color = INFO[ind]) +
+  geom_abline(col = "red") +
+  scale_color_viridis_c() +
+  labs(x = "beta_se_MI", y = "beta_se_imp", color = "INFO")
 qplot(beta_MI / beta_se_MI, (gwas_true$estim / gwas_true$std.err)[ind], color = INFO[ind]) +
   geom_abline(col = "red") +
   scale_color_viridis_c() +
@@ -130,11 +142,14 @@ plot_grid2(list(
     geom_abline(col = "red") +
     scale_color_viridis_c() +
     guides(color = guide_colorbar(barheight = 15, ticks.linewidth = 2)) +
-    labs(x = "Z_MI", y = "Z_imp * INFO", color = "INFO"),
+    labs(x = "Z-scores from multiple imputation",
+         y = "Overcorrected Z-scores from imputed dosages",
+         color = "INFO"),
   qplot(beta_MI, (gwas_imp$estim * INFO)[ind], color = INFO[ind]) +
     geom_abline(color = "red") +
     scale_color_viridis_c() +
-    labs(x = "beta_MI", y = "beta_imp * INFO", color = "INFO")
-), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 16,
+    labs(x = "GWAS effect sizes from multiple imputation",
+         y = "Overcorrected GWAS effect sizes from imputed dosages")
+), scale = 0.95, nrow = 1, labels = c("A", "B"), label_size = 18,
 title_ratio = 0, legend_ratio = 0.1)
-# ggsave("figures/compare-mult-imp.png", width = 12.5, height = 5.5)
+# ggsave("figures/compare-mult-imp.png", width = 12.5, height = 5.5, scale = 1.3)

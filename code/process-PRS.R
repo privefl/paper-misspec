@@ -144,11 +144,12 @@ all_res0 <- grid %>%
 
 for (PHENO in c("t1d", "brca", "mdd", "prca", "cad")) {
 
-  all_res <- filter(all_res0, grepl(PHENO, pheno))
+  all_res <- filter(all_res0, grepl(PHENO, pheno)) %>%
+    mutate(use_info = ifelse(use_info, "Yes", "No"))
 
   library(ggplot2)
   ggplot(filter(all_res, !use_blocks),
-         aes(method, pcor_1, fill = paste(qc, use_info))) +
+         aes(method, pcor_1, fill = paste(qc, use_info, sep = " - "))) +
     facet_wrap(~ pheno, nrow = 1) +
     bigstatsr::theme_bigstatsr(0.8) +
     scale_fill_manual(values =  c("#999999", "#E69F00", "#56B4E9", "#009E73")) +
@@ -157,12 +158,14 @@ for (PHENO in c("t1d", "brca", "mdd", "prca", "cad")) {
                   position = position_dodge(width = 0.9),
                   color = "black", width = 0.2, size = 1) +
     labs(x = "Method", y = "Partial correlation between PGS and phenotype",
-         fill = "Which QC? Correction using INFO?") +
-    theme(legend.position = "top") +
+         fill = "Which QC? - Correction using INFO?") +
+    theme(legend.position = "top",
+          legend.text = element_text(margin = margin(r = 10, unit = "pt")),
+          legend.title = element_text(margin = margin(r = 10, unit = "pt"))) +
     geom_col(data = filter(all_res, use_blocks),
              position = position_dodge(), color = "red",
              alpha = 0, show.legend = FALSE)
 
   ggsave(paste0("figures/res-", PHENO, ".pdf"),
-         width = `if`(nrow(all_res) < 50, 9, 13), height = 6.5)
+         width = `if`(nrow(all_res) < 50, 9.5, 13.5), height = 6.5)
 }

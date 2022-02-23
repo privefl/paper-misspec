@@ -62,28 +62,61 @@ mfi <- bigreadr::fread2("UKBB/mfi/ukb_mfi_chr22_v3.txt")
 merged <- inner_join(all_info, mfi,
                      by = c(rsid = "V2", allele1 = "V4", allele2 = "V5"))
 
-sampled <- slice_sample(merged, n = 50e3)
-library(ggplot2)
-ggplot(sampled, aes(pmin(freq, (1 - freq)), V6)) +
-  theme_bw(14) +
-  geom_point(alpha = 0.1) +
-  labs(x = "MAF recomputed", y = "MAF reported") +
-  coord_equal() +
-  geom_abline(color = "red") +
-  scale_x_log10() + scale_y_log10()
-# ggsave("figures/compare-all-maf-chr22.png", width = 8, height = 7)
+set.seed(1); sampled <- slice_sample(merged, n = 50e3)
 
-ggplot(sampled, aes(info, V8, color = V6 / pmin(freq, (1 - freq)))) +
-  theme_bw(14) +
-  geom_point(alpha = 0.2) +
-  labs(x = "INFO recomputed", y = "INFO reported",
-       color = "MAF_reported / MAF_recomputed") +
-  coord_equal() +
-  geom_abline(color = "red") +
-  scale_color_viridis_c(trans = "log", breaks = 10^(-3:4)) +
-  theme(legend.position = "top") +
-  guides(color = guide_colorbar(barwidth = 12, ticks.linewidth = 2))
-# ggsave("figures/compare-all-info-chr22.png", width = 7.5, height = 8)
+library(bigsnpr)
+map_subset <- snp_attach(snp_readBGEN(
+  bgenfiles   = "UKBB/bgen/ukb_imp_chr22_v3.bgen",
+  list_snp_id = list(with(sampled, paste(chromosome, physical.pos, allele1, allele2, sep = "_"))),
+  backingfile = tempfile(),
+  ncores      = nb_cores()
+))$map
+
+library(ggplot2)
+plot_grid(
+  ggplot(aes(pmin(map_subset$freq, (1 - map_subset$freq)), sampled$V6), data = NULL) +
+    theme_bw(14) +
+    geom_point(alpha = 0.1) +
+    labs(x = "MAF recomputed using all UKBB individuals", y = "MAF reported in MFI files") +
+    coord_equal() +
+    geom_abline(color = "red") +
+    scale_x_log10(breaks = c(0.1, 0.001, 1e-5, 1e-7)) +
+    scale_y_log10(breaks = c(0.1, 0.001, 1e-5, 1e-7)),
+
+  ggplot(aes(map_subset$info, sampled$V8), data = NULL) +
+    theme_bw(14) +
+    geom_point(alpha = 0.2) +
+    labs(x = "INFO recomputed using all UKBB individuals", y = "INFO reported in MFI files",
+         color = "MAF_reported / MAF_recomputed") +
+    coord_equal() +
+    geom_abline(color = "red") +
+    scale_color_viridis_c(trans = "log", breaks = 10^(-3:4)) +
+    theme(legend.position = "top") +
+    guides(color = guide_colorbar(barwidth = 12, ticks.linewidth = 2)),
+
+  ggplot(sampled, aes(pmin(freq, (1 - freq)), V6)) +
+    theme_bw(14) +
+    geom_point(alpha = 0.1) +
+    labs(x = "MAF recomputed in European subset", y = "MAF reported in MFI files") +
+    coord_equal() +
+    geom_abline(color = "red") +
+    scale_x_log10(breaks = c(0.1, 0.001, 1e-5, 1e-7)) +
+    scale_y_log10(breaks = c(0.1, 0.001, 1e-5, 1e-7)),
+
+  ggplot(sampled, aes(info, V8, color = V6 / pmin(freq, (1 - freq)))) +
+    theme_bw(14) +
+    geom_point(alpha = 0.2) +
+    labs(x = "INFO recomputed in European subset", y = "INFO reported in MFI files",
+         color = "MAF_reported / MAF_recomputed") +
+    coord_equal() +
+    geom_abline(color = "red") +
+    scale_color_viridis_c(trans = "log", breaks = 10^(-3:4)) +
+    theme(legend.position = "top") +
+    guides(color = guide_colorbar(barwidth = 12, ticks.linewidth = 2)),
+
+  scale = 0.98, axis = "bl"
+)
+# ggsave("figures/compare-all-maf-info-chr22.png", width = 13, height = 12)
 
 
 ## Write CSVs to export

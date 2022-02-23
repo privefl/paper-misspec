@@ -6,13 +6,8 @@ load("data/ukbb4simu_ind.RData")
 
 (NCORES <- nb_cores())
 
-corr0 <- runonce::save_run({
-  POS2 <- snp_asGeneticPos(as.integer(ukb$map$chromosome),
-                           ukb$map$physical.pos, dir = "tmp-data")
-  snp_cor(G, ind.row = ind.val, infos.pos = POS2, size = 3 / 1000, ncores = nb_cores())
-}, file = "tmp-data/corr0_simu_val.rds")
-corr <- runonce::save_run(as_SFBM(corr0, "tmp-data/corr_simu_val"),
-                          file = "tmp-data/corr_simu_val.rds")
+# Correlation matrix made in 'code/prepare-corr-simu-chr22.R'
+corr <- readRDS("tmp-data/corr_simu_val.rds")
 
 y <- snp_simuPheno(G, h2 = 0.2, M = 2000, ncores = NCORES)$pheno
 
@@ -62,16 +57,19 @@ params$auto_score2 <- apply(beta_lassosum, 2, function(beta) {
   crossprod(beta, beta_hat_shrunk2) / sqrt(bRb)
 })
 
-source("https://raw.githubusercontent.com/privefl/paper4-bedpca/master/code/plot_grid2.R")
-plot_grid2(list(
+plot_grid(
   qplot(auto_score, score, color = as.factor(delta), data = params) +
     theme_bw(15) +
+    geom_abline(linetype = 2, color = "red") +
     labs(x = "Score from pseudo-validation (using correlations)",
-         y = "Score from validation", color = "delta"),
+         y = "Score from validation", color = expression(delta)) +
+    theme(legend.position = c(0.15, 0.7)),
   qplot(auto_score2, score, color = as.factor(delta), data = params) +
     theme_bw(15) +
+    geom_abline(linetype = 2, color = "red") +
     labs(x = "Score from pseudo-validation (using p-values)",
-         y = "Score from validation")
-), scale = 0.95, labels = c("A", "B"), label_size = 16, ncol = 1,
-title_ratio = 0, legend_ratio = 0.15)
-# ggsave("figures/pseudoval.pdf", width = 8, height = 10)
+         y = "Score from validation", color = expression(delta)) +
+    theme(legend.position = c(0.8, 0.3)),
+  scale = 0.95, labels = c("A", "B"), label_size = 16, ncol = 1
+)
+# ggsave("figures/pseudoval.pdf", width = 7, height = 10)
