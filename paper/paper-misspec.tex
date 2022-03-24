@@ -79,10 +79,10 @@
 
 \noindent Contact: \url{florian.prive.21@gmail.com}
 
-\vspace*{8em}
+\vspace*{7em}
 
 \abstract{
-	Are genome-wide association studies (GWAS) summary statistics of good enough quality for performing follow-up analyses? Can we detect possible misspecifications in GWAS summary statistics and correct for them in order to improve predictive performance of polygenic scores?
+	Genome-wide association studies (GWAS) summary statistics come with uneven quality. Are they of good enough quality for performing follow-up analyses? First, we present an overview of possible misspecifications that come with GWAS summary statistics. Can we detect these possible misspecifications in GWAS summary statistics and correct for them to e.g. improve predictive performance of polygenic scores? Then, we show that additional information such as imputation INFO scores, allele frequencies, and per-variant sample sizes are very useful information to report in GWAS summary statistics because they can be used to detect possible issues and correct for misspecifications in the GWAS summary statistics. Unfortunately, due to the lack of reporting standards for GWAS summary statistics, this additional information is not systematically reported. Finally, we discuss how to make polygenic score methods, such as lassosum and LDpred2, more robust to these misspecifications to improve their predictive power.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -253,7 +253,7 @@ Second, using one of the proposed corrections based on INFO scores may lead to a
 We apply these corrections to the two breast cancer summary statistics. 
 In the comparison, we use the QC proposed in \cite{prive2020ldpred2} first (which ends up filtering on MAF here, which we call ``qc1''). We then also filter out the two long-range LD regions of chromosome 6 and 8 for the OncoArray summary statistics and remove around 500 variants when filtering on differences of MAFs between summary statistics and the validation dataset (``qc2'').
 As for the correction using INFO scores, we use the first correction, ``sqrt\_info'', which is simple because it is equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
-Although results for both QC used are very similar, correcting using INFO scores slightly improves prediction when deriving polygenic scores based on iCOGS summary statistics (Figure \ref{fig:res_brca}). 
+Although results for both QC used are very similar, correcting using INFO scores slightly improves predictive performance when deriving polygenic scores based on iCOGS summary statistics (Figure \ref{fig:res_brca}). 
 All other improvements introduced before have little to no effect here, probably because misspecifications are much smaller than in the simulations.
 
 \begin{figure}[h]
@@ -267,7 +267,7 @@ All other improvements introduced before have little to no effect here, probably
 We use other external GWAS summary statistics for which INFO scores are reported (Table \ref{tab:sumstats}); they all have a very high mean INFO score (larger than 0.94), except for T1D-affy (0.885).
 QC plots comparing standard deviations usually show little deviation from the identity line (after the INFO score correction), except for coronary artery disease (CAD) summary statistics (Figures \ref{fig:brca_icogs_qc}-\ref{fig:t1d_illu_qc}).
 In figures \ref{fig:res_cad}-\ref{fig:res_t1d}, we then provide similar results as figure \ref{fig:res_brca} for other phenotypes.
-Most changes introduced before have little to no impact on the predictions, except for the second quality control performed for CAD when using LDpred2-auto (Figure \ref{fig:res_cad}).
+Most changes introduced before have little to no impact on predictive performance, except for the second quality control performed for CAD when using LDpred2-auto (Figure \ref{fig:res_cad}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
