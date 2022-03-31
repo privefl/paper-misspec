@@ -163,9 +163,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.9\textwidth]{simu-altpop}}
-	\caption{Results for the simulations with summary statistics with LD matrices based on two different populations. One comes from the same population used for computing the GWAS summary statistics (North-West Europe), while the other one comes from South Europe (alternative LD reference). Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods).}
-	\label{fig:simu-altpop}
+	\centerline{\includegraphics[width=0.95\textwidth]{res-BBJ}}
+	\caption{Results for PGS derived from four Biobank Japan GWAS summary statistics and using three different LD reference. Partial correlations are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation, then all values are squared to report the phenotypic variance explained by PGS.}
+	\label{fig:bbj}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,7 +186,7 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.75\textwidth]{hist_bad_pos}}
-	\caption{Histogram of the positions of outlier variants from Figure 3B in the main text.%TODO: VERIF NUMBER AT THE END
+	\caption{Histogram of the positions of outlier variants from Figure 5B in the main text.%TODO: VERIF NUMBER AT THE END
 	\label{fig:hist-bad-pos}}
 \end{figure}
 
@@ -243,27 +243,39 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.7\textwidth]{res-cad}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting CAD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
-	\label{fig:res_cad}
+	\centerline{\includegraphics[width=0.7\textwidth]{res-brca_icogs}}
+	\caption{Variance explained of BRCA in the UK Biobank by PGS derived from external summary statistics (iCOGS). These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
+	\label{fig:res_brca_icogs}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.7\textwidth]{res-brca_onco}}
+	\caption{Variance explained of BRCA in the UK Biobank by PGS derived from external summary statistics (OncoArray). These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
+	\label{fig:res_brca_onco}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.7\textwidth]{res-mdd}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting MDD in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
+	\caption{Variance explained of MDD in the UK Biobank by PGS derived from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
 	\label{fig:res_mdd}
 \end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.7\textwidth]{res-prca}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting PRCA in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
+	\caption{Variance explained of PRCA in the UK Biobank by PGS derived from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
 	\label{fig:res_prca}
 \end{figure}
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.95\textwidth]{res-t1d}}
-	\caption{Raw partial correlations (for \textit{all} models) for predicting T1D in the UK Biobank from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation.}
-	\label{fig:res_t1d}
+	\centerline{\includegraphics[width=0.7\textwidth]{res-t1d_illu}}
+	\caption{Variance explained of T1D in the UK Biobank by PGS derived from external summary statistics (Illumina). These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
+	\label{fig:res_t1d_illu}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.7\textwidth]{res-t1d_affy}}
+	\caption{Variance explained of T1D in the UK Biobank by PGS derived from external summary statistics (Affymetrix). These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
+	\label{fig:res_t1d_aff}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -273,8 +285,26 @@
 \FloatBarrier
 
 \begin{figure}[p]
+\centerline{\includegraphics[width=0.8\textwidth]{vitaminD_qc}}
+\caption{Standard deviations inferred from the vitamin D GWAS summary statistics versus the ones inferred from the allele frequencies of the LD reference. Only 100,000 variants are represented, at random.}
+\label{fig:vitaminD_qc}
+\end{figure}
+
+\begin{figure}[p]
+\centerline{\includegraphics[width=0.75\textwidth]{hist_N_vitaminD}}
+\caption{Histogram of the per-variant sample sizes in the vitamin D GWAS summary statistics. \label{fig:hist-N-vitaminD}}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\clearpage
+
+\FloatBarrier
+
+\begin{figure}[p]
 	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
-	\caption{For one simulation, scores from validation versus scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values when computing local false discovery rates.}
+	\caption{For one simulation, scores from validation versus scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values, when computing local false discovery rates.}
 	\label{fig:pseudoval}
 \end{figure}
 
