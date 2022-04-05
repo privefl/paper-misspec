@@ -8,7 +8,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[latin1]{inputenc}
 \usepackage{geometry}
-\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=1.5cm,rmargin=1.5cm}
+\geometry{verbose,letterpaper,tmargin=2cm,bmargin=2cm,lmargin=2cm,rmargin=2cm}
 \usepackage{rotating}
 \usepackage{color}
 \usepackage{graphicx}
@@ -18,6 +18,7 @@
 \usepackage{hyperref}
 \usepackage{bbm}
 \usepackage{makecell}
+%\usepackage[font=small]{caption}
 
 \renewcommand{\arraystretch}{1.3}
 
@@ -46,7 +47,7 @@
 
 \let\tabbeg\tabular
 \let\tabend\endtabular
-\renewenvironment{tabular}{\begin{adjustbox}{max width=0.95\textwidth}\tabbeg}{\tabend\end{adjustbox}}
+\renewenvironment{tabular}{\begin{adjustbox}{max width=\textwidth}\tabbeg}{\tabend\end{adjustbox}}
 
 \makeatletter
 
@@ -79,11 +80,11 @@
 
 \noindent Contact: \url{florian.prive.21@gmail.com}
 
-\vspace*{7em}
+\vspace*{6em}
 
-\abstract{
-	Genome-wide association studies (GWAS) summary statistics come with uneven quality. Are they of good enough quality for performing follow-up analyses? First, we present an overview of possible misspecifications that come with GWAS summary statistics. Can we detect these possible misspecifications in GWAS summary statistics and correct for them to e.g. improve predictive performance of polygenic scores? Then, we show that additional information such as imputation INFO scores, allele frequencies, and per-variant sample sizes are very useful information to report in GWAS summary statistics because they can be used to detect possible issues and correct for misspecifications in the GWAS summary statistics. Unfortunately, due to the lack of reporting standards for GWAS summary statistics, this additional information is not systematically reported. We also show how important it is to use well-matched LD references. Finally, we discuss how to make polygenic score methods, such as lassosum and LDpred2, more robust to these misspecifications to improve their predictive power.
-}
+\begin{abstract}
+Genome-wide association studies (GWAS) summary statistics come with uneven quality; are they of good enough quality for performing follow-up analyses? First, we present an overview of possible misspecifications that come with GWAS summary statistics. Can we detect these possible misspecifications in GWAS summary statistics and correct for them to e.g.\ improve predictive performance of polygenic scores? Then, we show that additional information such as imputation INFO scores, allele frequencies, and per-variant sample sizes in GWAS summary statistics can be used to detect possible issues and correct for misspecifications in the GWAS summary statistics. Unfortunately, due to the lack of reporting standards for GWAS summary statistics, this additional information is not systematically reported. We also show that using well-matched LD references can improve model fit and translate into more accurate prediction. Finally, we discuss how to make polygenic score methods, such as lassosum and LDpred2, more robust to these misspecifications to improve their predictive power.
+\end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -94,12 +95,12 @@
 \section{Introduction}
 
 Contrary to individual-level genotypes and phenotypes, summary statistics resulting from genome-wide association studies (GWAS) are widely available, and very large sample sizes can be obtained through meta-analysis \cite[]{yengo2022saturated}.
-GWAS summary statistics have been extensively used to derive polygenic scores (PGS), perform fine-mapping, and estimate a range of key genetic architecture parameters \cite[]{prive2021finding}.
+GWAS summary statistics have been extensively used to derive polygenic scores (PGS), perform fine-mapping, and estimate a range of key genetic architecture parameters \cite[]{pasaniuc2017dissecting,prive2021finding,chen2021improved}.
 However, GWAS summary statistics come with uneven imputation accuracy.
 There is also heterogeneity in the information made available in these summary statistics; for example, per-variant imputation INFO scores, sample sizes and allele frequencies are often missing.
-Moreover, many methods based on summary statistics use Bayesian models, which can be sensitive to model misspecifications \cite[]{WALKER20131621,miller2018robust}.
+Moreover, many methods based on summary statistics use Bayesian models and iterative algorithms, which can be sensitive to model misspecifications \cite[]{WALKER20131621,miller2018robust}.
 
-We present an overview of possible misspecifications that come with GWAS summary statistics (Table \ref{tab:overview}). 
+We present an overview of possible misspecifications that come with GWAS summary statistics in Table \ref{tab:overview}. 
 First, the total sample size used can be misestimated, which would result in a biased estimation of the SNP heritability. For example, the total effective sample size is overestimated when computed from the total number of cases and controls from a meta-analysis of binary outcomes \cite[]{grotzinger2021pervasive}; using BOLT-LMM summary statistics can result in an increased effective sample size \cite[]{loh2018mixed,gazal2018functional}; using SAIGE on binary traits with a large prevalence can result in a reduced effective sample size \cite[]{zhou2018efficiently,mbatchou2021computationally}. 
 Second, per-variant sample sizes can vary substantially and be much smaller than the total sample size when meta-analyzing GWAS summary statistics from multiple cohorts with different sets of variants \cite[]{wang2021global}.
 Using very different per-variant sample sizes can be problematic for models implicitly assuming that summary statistics have all been derived from the same individuals \cite[]{zhu2017bayesian,zhou2021fast}.
@@ -149,7 +150,7 @@ We approach this from three different angles.
 First, based on additional summary information such as the imputation INFO scores and allele frequencies from the GWAS summary statistics, we refine our previously proposed QC \cite[]{prive2020ldpred2}.
 This QC consists in comparing standard deviations (of genotypes) inferred from GWAS summary statistics with the ones computed from a reference panel.
 This is useful to check that the input parameters used are consistent with each other. 
-This was particularly important for LDpred2-auto, which directly estimates key model parameters from the data \cite[]{prive2020ldpred2}.
+This was particularly important for LDpred2-auto, which directly estimates two key model parameters, the SNP heritability and polygenicity, from the data \cite[]{prive2020ldpred2}.
 Here we further show that standard deviations of imputed genotypes (allele dosages) are lower than the expected values under Hardy--Weinberg equilibrium.
 Second, we investigate possible adjustments to apply to the input parameters of methods using summary statistics (focusing on PGS methods here), namely the reference LD (linkage disequilibrium) matrix, the GWAS effect sizes, their standard errors and corresponding sample sizes.
 For example, we show that GWAS effect sizes computed from imputed dosages are larger in magnitude compared to if computed from true genotypes.
@@ -166,7 +167,7 @@ Second, we reimplement and use a new version of lassosum, called lassosum2, that
 We design GWAS simulations where variants have different sample sizes, which is often the case when meta-analyzing GWAS summary statistics from multiple cohorts with different sets of variants \cite[]{wang2021global}.
 Using 40,000 variants from chromosome 22 (Methods), we simulate quantitative phenotypes with a heritability of 20\% and 2000 causal variants.
 We then divide the 40,000 variants into three groups: for half of the variants, we use 100\% of 300,000 individuals for GWAS, but use only 80\% for one quarter of the variants and 60\% for the remaining quarter. 
-We then run C+T, lassosum, lassosum2 (Methods), LDpred2-inf, LDpred2(-grid), and LDpred2-auto \cite[]{prive2019making,mak2017polygenic,prive2020ldpred2} by using either the true per-variant GWAS sample sizes, the total sample size for all variants, or imputed (per-variant) sample sizes. 
+We then run C+T, lassosum, lassosum2 (Methods section \ref{lassosum2}), LDpred2-inf, LDpred2(-grid), and LDpred2-auto \cite[]{prive2019making,mak2017polygenic,prive2020ldpred2} by using either the true per-variant GWAS sample sizes, the total sample size for all variants, or imputed (per-variant) sample sizes. 
 Note that we initially included PRS-CS and SBayesR in our comparison \cite[]{ge2019polygenic,lloyd2019improved}. However, results for SBayesR always diverged (stopping with an error), and the overlap with the LD reference provided for PRS-CS was too small.
 When providing true per-variant GWAS sample sizes, squared correlations between the polygenic scores and the simulated phenotypes are of 0.123 for C+T, 0.161 for lassosum, 0.169 for lassosum2, 0.159 for LDpred2(-grid), 0.140 for LDpred2-auto, and 0.141 for LDpred2-inf (Figure \ref{fig:simu-misN}, averaging over 10 simulations).
 Results when using imputed sample sizes are quite similar to when using the true ones.
@@ -175,21 +176,21 @@ When using the total GWAS sample size instead of the per-variant sample sizes, p
 This extreme simulation scenario shows that LDpred2 can be sensitive to the misspecification of per-variant GWAS sample sizes, whereas lassosum (and lassosum2) seems little affected by this.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=0.98\textwidth]{simu-misN}}
-	\caption{Results for the simulations with sample size misspecification, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, ``imputed'' (Methods), or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks (Methods).}
+	\centerline{\includegraphics[width=\textwidth]{simu-misN}}
+	\caption{Results for the simulations with sample size misspecification, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, ``imputed'' (cf.\ equation \eqref{eq:imputeN}), or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}).}
 	\label{fig:simu-misN}
 \end{figure}
 
 We conduct further investigations to explain the results of figure \ref{fig:simu-misN}.
 First, the results for LDpred2-auto are similar to LDpred2-inf because it always converges to an infinitesimal model ($p = 1$) in these simulations.
-To overcome this limitation, we introduce two new parameters to make LDpred2-auto more robust, and refer to this as ``LDpred2-auto-rob'' here (Methods).
+To overcome this limitation, we introduce two new parameters to make LDpred2-auto more robust, and refer to this as ``LDpred2-auto-rob'' here (Methods section \ref{sec:robust}).
 The first parameter prevents $p$ from diverging to $1$, while the second shrinks the off-diagonal elements of the LD matrix (a form of regularization). 
 Second, for lassosum2, results for a grid of parameters (over $\lambda$ and $\delta$) are quite smooth compared to LDpred2 (Figures \ref{fig:lassosum2-misN} and \ref{fig:ldpred2-misN}). 
 In these simulations with misspecified per-variant sample sizes, it seems highly beneficial to use a small value for the SNP heritability hyper-parameter $h^2$ in LDpred2, e.g.\ a value of 0.02 or even 0.002 when the true value is 0.2 (Figure \ref{fig:ldpred2-misN}). 
 Indeed, using a small value for this hyper-parameter induces a larger regularization (shrinkage) on the effect sizes.
 Here we call ``LDpred2-low-h2'' when running LDpred2(-grid) with a grid of hyper-parameters including these low values for $h^2$.
 Results with LDpred2-low-h2 improves from 0.159 to 0.169 when using true sample sizes and from 0.134 to 0.163 when using the maximum sample size.
-Finally, we introduce a last change for robustness here: we form independent LD blocks in the LD matrix to prevent small errors in the Gibbs sampler to propagate to too many variants (Methods). This change seems to solve convergence issues of LDpred2 in these simulations (Figure \ref{fig:ldpred2-misN}) and further improves predictive performance for all LDpred2 methods (Figure \ref{fig:simu-misN}).
+Finally, we introduce a last change for robustness here: we form independent LD blocks in the LD matrix to prevent small errors in the Gibbs sampler to propagate to too many variants (Methods section \ref{sec:LD}). This change seems to solve convergence issues of LDpred2 in these simulations (Figure \ref{fig:ldpred2-misN}) and further improves predictive performance for all LDpred2 methods (Figure \ref{fig:simu-misN}).
 
 
 \subsection{When using allele dosages from imputation}\label{sec:imputation}
@@ -216,9 +217,9 @@ In the real data applications hereinafter, we choose to use the first correction
 
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=0.98\textwidth]{simu-info}}
+	\centerline{\includegraphics[width=\textwidth]{simu-info}}
 	\caption{Results of predictive performance for the simulations using GWAS summary statistics from imputed dosage data, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Correction ``sqrt\_info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$.
-	Correction ``info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$  and $n_j \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$, and $n_j \cdot \text{INFO}_j$. Red bars correspond to using the LD with independent blocks (Methods).}
+	Correction ``info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$  and $n_j \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$, and $n_j \cdot \text{INFO}_j$. Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}).}
 	\label{fig:simu-info}
 \end{figure}
 
@@ -232,49 +233,50 @@ When using this alternative LD reference panel instead of a well-matched one as 
 Forming independent LD blocks in these two LD matrices always helps, but do not improve performance by much when using the alternative LD.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=0.9\textwidth]{simu-altpop}}
-	\caption{Results for the simulations with summary statistics with LD matrices based on two different populations. One comes from the same population used for computing the GWAS summary statistics (North-West Europe), while the other one comes from South Europe (alternative LD reference). Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods).}
+	\centerline{\includegraphics[width=\textwidth]{simu-altpop}}
+	\caption{Results for the simulations with summary statistics with LD matrices based on two different populations. One comes from the same population used for computing the GWAS summary statistics (North-West Europe), while the other one comes from South Europe (alternative LD reference). Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}).}
 	\label{fig:simu-altpop}
 \end{figure}
 
 \subsection{Application to FinnGen and Biobank Japan summary statistics}
 
-We download and use GWAS summary statistics from five disease endpoints from FinnGen (release 6, \cite{kurki2022finngen}), namely breast and prostate cancers (BrCa and PrCa), coronary artery disease (CAD), type 1 and type 2 diabetes (T1D and T2D).
-These have been derived using SAIGE \cite[]{zhou2018efficiently}.
+In this section, we transition to using real data and investigate the use of different LD reference panels with GWAS summary statistics from two large biobanks of isolated populations.
+We download and use GWAS summary statistics for five disease endpoints from FinnGen (release 6, \cite{kurki2022finngen}), namely breast and prostate cancers (BrCa and PrCa), coronary artery disease (CAD), type 1 and type 2 diabetes (T1D and T2D).
+These were derived using SAIGE \cite[]{zhou2018efficiently}.
 First, for each phenotype, we estimate a global effective sample using the 80th percentile of imputed sample sizes from equation \eqref{eq:imputeNeff}.
 This estimation is only 84.7\% for BrCa, 79.1\% for PrCa, 73.1\% for T1D, 64.5\% for T2D, and 61.3\% for CAD, when compared to the effective sample computed from the reported numbers of cases and controls.
-We believe this reduction in effective sample size is due to both having related individuals as well as using SAIGE, as noted in the introduction.
+We believe this reduction in effective sample size is due to both having related individuals included in the analyses, as well as using SAIGE, as noted in the introduction.
 We then compare three different LD reference panels to use with these GWAS summary statistics (Methods section \ref{sec:altLD}).
-Using the small Finnish LD reference panel composed of 503 individuals only seems to consistently provide more predictive polygenic scores than using the other two LD references, including the large UK one composed of 10,000 individuals (Figure \ref{fig:finngen}).
-Note that the PGS are validated in people of UK-like ancestry, so we would expect larger improvements if validating in a Finnish population. 
+Interestingly, using the small Finnish LD reference panel composed of 503 individuals only we have defined here seems to consistently provide more predictive polygenic scores than using the large UK one composed of 10,000 individuals or the widely used European subset of the 1000 Genomes (1000G) data (Figure \ref{fig:finngen}).
+Note that the PGS here are validated in people of UK-like ancestry in the UK biobank to obtain sufficient sample sizes. 
 
 \begin{figure}[!h]
 	\centerline{\includegraphics[width=0.85\textwidth]{res-FIN}}
-	\caption{Results for PGS derived from five FinnGen GWAS summary statistics and using three different LD reference. Partial correlations are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation, then all values are squared to report the phenotypic variance explained by PGS.}
+	\caption{Results for PGS derived from five FinnGen GWAS summary statistics and using three different LD references. Partial correlations are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation, then all values are squared to report the phenotypic variance explained by PGS.}
 	\label{fig:finngen}
 \end{figure}
 
-We also download and use GWAS summary statistics from four continuous outcomes from Biobank Japan \cite[]{sakaue2021cross}.
-These have been derived using BOLT-LMM-inf \cite[]{loh2018mixed}.
+We also download and use GWAS summary statistics for four continuous outcomes from Biobank Japan \cite[]{sakaue2021cross}.
+These were derived using BOLT-LMM-inf \cite[]{loh2018mixed}.
 First, for each phenotype, we estimate a global power improvement provided by BOLT-LMM by comparing $\chi^2$-statistics (the boost of BOLT-LMM-inf versus linear regression) across genome-wide significant variants, as recommended in \cite{loh2018mixed}.
-This estimated power ratio (increase in effective sample size) is 1.143 for height, 1.039 for HDL cholesterol, 1.025 for BMI, and 1.013 for systolic blood pressure.
+This estimated power ratio, which corresponds to the increase in effective sample size, is 1.143 for height, 1.039 for HDL cholesterol, 1.025 for BMI, and 1.013 for systolic blood pressure.
 We then compare three different LD reference panels to use with these GWAS summary statistics (Methods section \ref{sec:altLD}).
-Interesting, when looking at height and to some extent at HDL cholesterol where we could get the best predictive performance, using the smaller UKBB Japanese LD reference seems to provide more predictive PGS than using the other two LD references, including the one using a larger set of East Asian individuals from the UKBB (Figure \ref{fig:bbj}).
-Note that the PGS are validated in people of broad East Asian ancestry, so we would expect larger improvements if validating in a Japanese population. 
+Interestingly, when looking at height and to some extent at HDL cholesterol where we could get the best predictive performance, using the smaller Japanese LD reference we have defined here seems to provide more predictive PGS than using the one using a larger set of East Asian individuals from the UKBB or the widely used East Asian subset of the 1000 Genomes (1000G) data (Figure \ref{fig:bbj}).
+Note that the PGS here are validated in people of broad East Asian ancestry in the UK biobank and for continuous outcomes  to obtain sufficient sample sizes.
 
 \subsection{Application to breast cancer summary statistics}
 
-Breast cancer summary statistics are interesting because they include results from two mega analyses \cite[]{michailidou2013large,michailidou2015genome,michailidou2017association}, which means that parameters reported in these GWAS summary statistics, such as INFO scores and sample sizes, are estimated with high precision.
+Breast cancer GWAS summary statistics are interesting because they include results from two mega analyses \cite[]{michailidou2013large,michailidou2015genome,michailidou2017association}, which means that parameters reported in these GWAS summary statistics, such as INFO scores and sample sizes, are estimated with high precision.
 Imputation INFO scores for the OncoArray summary statistics are generally very good (mean of 0.968 after having restricted to HapMap3 variants, Figure \ref{fig:hist-info-brca}) and better than the ones from iCOGS (mean of 0.841, Figure \ref{fig:hist-info-brca2}), probably because the iCOGS chip included around 200K variants only, compared to more than 500K variants for the OncoArray.
 For both summary statistics, we compare the standard deviations (of genotypes) inferred from the reported allele frequencies (i.e.\ $\sqrt{2 f (1 - f)}$ where $f$ is the allele frequency, and denoted as sd\_af) versus the ones inferred from the GWAS summary statistics (Equation \eqref{eq:approx-sd-log}, and denoted as sd\_ss).
 As shown in figures \ref{fig:brca_onco_qc} and \ref{fig:brca_icogs_qc}, there is a clear trend with sd\_ss being lower than sd\_af as INFO decreases; indeed, using $\text{sd\_ss} / \sqrt{\text{INFO}}$ provides a very good fit for sd\_af, except for some variants of chromosome 6 and 8 for the OncoArray summary statistics. 
 Most of these outlier variants are either in region 25-33 Mbp of chromosome 6 or in 8-12 Mbp of chromosome 8 (Figure \ref{fig:hist-bad-pos}), which are two known long-range LD regions \cite[]{price2008long}.
 We hypothesize that this is due to using principal components (PCs) that capture LD structure instead of population structure, as covariates in the GWAS \cite[]{prive2020efficient}.
-To validate this hypothesis, we simulate a phenotype using HapMap3 variants of chromosome 6 for 10,000 individuals from the UK Biobank, then we run GWAS with or without PC19 as covariate. PC19 from the UK Biobank was previously reported to capture LD structure in region 70-91 Mbp of chromsome 6 \cite[]{prive2020efficient}.
+To validate this hypothesis, we simulate a phenotype using HapMap3 variants of chromosome 6 for 10,000 individuals from the UK Biobank, then we run GWAS with or without PC19 as covariate. PC19 from the UK Biobank was previously reported to capture LD structure in region 70-91 Mbp of chromosome 6 \cite[]{prive2020efficient}.
 In these simulations, the same bias as in figure \ref{fig:brca_onco_qc}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), confirming our hypothesis.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=0.98\textwidth]{brca_onco_qc}}
+	\centerline{\includegraphics[width=\textwidth]{brca_onco_qc}}
 	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics using equation \ref{eq:approx-sd-log} (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies $f_j$ (using $\sqrt{2 f_j (1 - f_j)}$). Only 100,000 HapMap3 variants are represented, at random.}
 	\label{fig:brca_onco_qc}
 \end{figure}
@@ -289,7 +291,7 @@ All other improvements introduced before have little to no effect here, probably
 
 \subsection{Results for other phenotypes}
 
-We use other external GWAS summary statistics for which INFO scores are reported (Table \ref{tab:sumstats}); they all have a very high mean INFO score (larger than 0.94), except for T1D-affy (0.885).
+We use other external GWAS summary statistics for which INFO scores are reported (see Table \ref{tab:sumstats}); they all have a very high mean INFO score (larger than 0.94), except for T1D-affy (0.885).
 QC plots comparing standard deviations usually show little deviation from the identity line (after the INFO score correction), except for coronary artery disease (CAD) summary statistics (Figures \ref{fig:brca_icogs_qc}-\ref{fig:t1d_illu_qc}).
 In figures \ref{fig:res_cad} and \ref{fig:res_brca_onco}-\ref{fig:res_t1d_aff}, we then provide similar results as figure \ref{fig:res_brca_icogs} for other phenotypes.
 For MDD and PRCA, most changes introduced before have little to no impact on predictive performance.
@@ -301,10 +303,10 @@ For CAD and T1D, the QC proposed in \cite{prive2020ldpred2} and the additional Q
 	\label{fig:res_cad}
 \end{figure}
 
-We also investigate results for vitamin D GWAS summary statistics, which do not report INFO scores nor allele frequencies, as opposed to previous ones.
+Lastly, we also investigate results for vitamin D GWAS summary statistics, which do not report INFO scores nor allele frequencies, as opposed to previous ones.
 The QC procedure is then less precise and uses allele frequencies from the LD reference (Figure \ref{fig:vitaminD_qc});
 However, these summary statistics do report per-variant sample sizes, which cover a wide range of different values (Figure \ref{fig:hist-N-vitaminD}).
-Here we test using either the maximum sample size or the true per-variant sample sizes when deriving polygenic scores, and an additional QC step ``qc2'' which refers to removing all variants with a per-variant sample size less than 70\% of the maximum one.
+Here we compare using either the maximum sample size or the true per-variant sample sizes when deriving polygenic scores, and an additional QC step ``qc2'' which refers to removing all variants with a per-variant sample size less than 70\% of the maximum one.
 When the true per-variant sample sizes are used, the additional ``qc2'' does not seem to be necessary (Figure \ref{fig:res_vitaminD}), which is a bit surprising to us.
 When the maximum sample size is used, this ``qc2'' is very important, especially for LDpred2-auto.
 Note that, when using the maximum sample size to derive ``sd\_ss'' in ``qc1'' (not the case here; we used the per-variant sample sizes), ``qc1'' would remove variants with underestimated standard deviations due to overestimated sample sizes, which would effectively remove variants with low sample sizes, similar to the ``qc2'' used here.
@@ -319,7 +321,7 @@ Note that, when using the maximum sample size to derive ``sd\_ss'' in ``qc1'' (n
 
 \section{Discussion}
 
-We have investigated misspecifications in GWAS summary statistics, focusing particularly on the impact of sample size heterogeneity and imputation quality, and the application to polygenic scores (PGS) methods.
+Here we have investigated misspecifications in GWAS summary statistics, focusing particularly on the impact of sample size heterogeneity and imputation quality, and the application to polygenic scores (PGS) methods.
 Previously, we proposed a quality control (QC) based on comparing standard deviations (of genotypes) inferred from GWAS summary statistics with the ones computed from a reference panel \cite[]{prive2020ldpred2}.
 Here we show that we can refine this QC by deriving the latter directly from the reported allele frequencies in the GWAS summary statistics, and by correcting the former using imputation INFO scores.
 Using this refined QC, we are able to identify a potential issue with how principal components were derived in a GWAS of breast cancer. Fortunately, this has practically no effect on the predictive performance of the derived polygenic scores.
@@ -333,7 +335,7 @@ Solutions such as using a weighted averaged INFO score might be worth exploring 
 Nevertheless, this quality control could be performed within each study before meta-analyzing results, to make sure that resulting summary statistics have the best possible quality for follow-up analyses such as deriving polygenic scores.
 Another information, the effective sample size per variant, is often missing from GWAS summary statistics. 
 Sometimes, it can even be challenging to recover the total effective sample size from large meta-analyses.
-We recall that if some studies of a meta-analysis have an imbalanced number of cases and controls, the total effective sample size should not be computed from the total numbers of cases and controls overall, but instead from the sum of the effective sample sizes of each study.
+We recall that, when some studies have an imbalanced number of cases and controls, the total effective sample size of their meta-analysis should not be computed from the total numbers of cases and controls overall, but instead from the sum of the effective sample sizes of each study \cite[]{grotzinger2021pervasive}.
 Indeed, take the extreme example of meta-analyzing two studies, one with 1000 cases and 0 controls, and another one with 0 cases and 1000 controls, then the effective sample size of the meta-analysis is 0, not 2000.
 Misspecifying the GWAS sample size can lead to serious issues such as misestimating the SNP heritability \cite[]{grotzinger2021pervasive}.
 Fortunately, an overestimated sample size can be detected from the QC plot we propose, where the slope is then less than 1 for case-control studies using logistic regression; otherwise the standard deviation of the phenotype is also needed (Equation \ref{eq:approx-sd-lin}), but can be estimated \cite[]{prive2020ldpred2}.
@@ -341,19 +343,21 @@ Here we have used this strategy to estimate reduced effective sample sizes in Fi
 
 We have assessed the impact of these misspecifications in GWAS summary statistics on the predictive performance of some polygenic score methods.
 Using both the Bayesian LDpred2 models \cite[]{prive2020ldpred2} and our reimplementation of the frequentist lassosum model \cite[]{mak2017polygenic} for deriving polygenic scores, we have introduced and investigated some changes to possibly make these models more robust to misspecifications.
-Overall, these changes provided large improvements of predictive performance in the simulations with large misspecifications. However, they had little to no effect when using the real GWAS summary statistics we chose, except for breast cancer and coronary artery disease summary statistics.
-Although these results are somewhat unfortunate, they are reassuring because it means that the summary statistics we use in this study are usually of good quality for follow-up analyses such as deriving polygenic scores.
+Overall, these changes provided large improvements of predictive performance in the simulations with large misspecifications.
+The proposed quality controls on GWAS summary statistics also provided better predictive performance for CAD, T1D, and vitamin D.
+However, these changes had limited effect when applied to some other real GWAS summary statistics, which is both unfortunate but also reassuring because it means that these GWAS summary statistics are of particularly good quality for follow-up analyses such as deriving polygenic scores.
 
-Nevertheless, we recommend to adopt these changes, i.e.\ performing the (refined) QC proposed here, forming independent LD blocks in the LD matrix, and using more regularization when needed. 
-We have shown other useful results, such as that filtering small sample sizes is very useful, as well as using a well-matched LD reference panel. 
-More regularization can be achieved by testing additional smaller values for the heritability parameter in LDpred2-grid, and using the two new parameters introduced here in LDpred2-auto (Section \ref{sec:robust}). 
-Note that LD blocks are already widely used by several methods (such as lassosum and PRS-CS) because they allow for processing smaller matrices at once \cite[]{mak2017polygenic,ge2019polygenic}; here we have shown that these blocks are also useful to make methods more robust.
+In conclusion, we recommend adopting these changes, i.e.\ performing the (refined) QC proposed here, forming independent LD blocks in the LD matrix, and using more regularization when needed. 
+We also recommend using well-matched LD reference panels. 
+More regularization can be achieved by testing additional smaller values for the heritability parameter in LDpred2-grid, and using the two new parameters introduced here in LDpred2-auto (Methods section \ref{sec:robust}). 
+Note that LD blocks are already widely used by several methods, such as lassosum and PRS-CS, because they allow for processing smaller matrices at once \cite[]{mak2017polygenic,ge2019polygenic}.
+Imposing independent blocks on the LD matrix could result in further misspecifications \cite[]{zhou2021fast}, but here we have shown that well defined blocks can actually make PGS methods more robust.
 PRS-CS is currently one of the most robust PGS methods; for example, it can use the (small) 1000 Genomes data as LD reference \cite[]{ge2019polygenic}, and can even use a European LD reference panel with multi-ancestry GWAS summary statistics \cite[]{wang2021global}.
-We think this is made possible by the use of a (very) strong regularization in PRS-CS ($\phi^{-1} \psi_j^{-1} \ge 1$, which would approximately correspond to using $s=0.5$ in lassosum, $\delta = 1$ in lassosum2, and $\texttt{shrink\_corr}=0.5$ in LDpred2-auto).
+We believe this is made possible by the use of a strong regularization in PRS-CS ($\phi^{-1} \psi_j^{-1} \ge 1$, which would approximately correspond to using $s=0.5$ in lassosum, $\delta = 1$ in lassosum2, and the new parameter $\texttt{shrink\_corr}=0.5$ in LDpred2-auto).
 Using enough regularization is good for robustness, but note that using too much regularization can also damage predictive performance.
 To address this limitation, we recommend to rely on a proper QC and choice of ancestry-matched LD instead of on too much regularization.
-We would like to invite large biobanks, such as FinnGen and Biobank Japan, to provide LD reference matrices matching the large GWAS summary statistics they provide, ideally based on the same large number of individuals. 
-As a future research direction, we are interested in using multi-ancestry-matched LD matrices to improve polygenic prediction in all ancestries.
+We would like to encourage large biobanks, such as FinnGen and Biobank Japan, to provide LD reference matrices matching the large GWAS summary statistics they provide, ideally based on the same large number of individuals. 
+As a future research direction, we are interested in using multi-ancestry-matched LD matrices to use with multi-ancestry GWAS summary statistics in order to improve polygenic prediction in all ancestries.
 It would also be useful to investigate the impact of the QC, well-matched LD reference panels and other adjustments we propose here on other (non-PGS) methods, for which consistency and robustness are likely to be very important as well \cite[]{chen2021improved}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -375,7 +379,7 @@ The first dataset is used as what could be the real genotype calls and the secon
 
 \subsection{Data for real analyses}
 
-We also use the UK Biobank data, and use the same individuals as described in the previous section. We sample 10,000 individuals to form a validation set and use the remaining 352,307 individuals as test set.
+We also use the UK Biobank data for validation/testing in real data analyses, and use the same individuals as described in the previous section. We sample 10,000 individuals to form a validation set and use the remaining 352,307 individuals as test set.
 We restrict to the 1,054,315 HapMap3 variants used in the LD reference provided in \cite{prive2020ldpred2}.
 
 To define phenotypes in the UK Biobank, we first map ICD10 and ICD9 codes (UKBB fields 40001, 40002, 40006, 40013, 41202, 41270 and 41271) to phecodes using R package PheWAS \cite[]{carroll2014r,wu2019mapping}.
@@ -426,7 +430,7 @@ and impute $n_j^\text{eff}$ from equation \eqref{eq:approx-sd-log} using
 n_j^\text{eff} \approx \dfrac{4 / \text{var}(G_j) - \hat{\gamma}_j^2}{\text{se}(\hat{\gamma}_j)^2} ~.
 \end{equation}
 In practice, we also bound this estimate to be between $0.5 \cdot N$ and $1.1 \cdot N$, where $N$ is the total (effective) sample size.
-Also note that the estimate of $\text{var}(G_j)$ has to account for the imputation accuracy (Section \ref{sec:imputation}).
+Also note that the estimate of $\text{var}(G_j)$ has to account for the imputation accuracy, i.e.\ use $2 \cdot f_j \cdot (1 - f_j) \cdot \text{INFO}_j$ (Section \ref{sec:imputation}).
 
 
 \subsection{New implementation of lassosum in bigsnpr}\label{lassosum2}
@@ -456,15 +460,15 @@ We try $\delta \in \{0.001, 0.005, 0.02, 0.1, 0.6, 3\}$ by default in lassosum2,
 For $\lambda$, the default in lassosum uses a sequence of 20 values equally spaced on a log scale between 0.1 and 0.001. By default in lassosum2, we use a similar sequence, but between $\lambda_0$ and $\lambda_0 / 100$ instead, where $\lambda_0 = \max_j \big|\widehat{\beta}_j\big|$ is the minimum $\lambda$ for which no variable enters the model because the L1-regularization is too strong.
 Note that we do not provide an ``auto'' version using pseudo-validation (as in \cite{mak2017polygenic}) as we have not found it to be robust enough (Figure \ref{fig:pseudoval}).
 Also note that, as in LDpred2, we run lassosum2 genome-wide using a sparse correlation matrix which assumes that variants further away than 3 cM are not correlated.
-Although we do not require splitting the genome into independent LD blocks anymore (as done in lassosum), we recommend to do so for robustness in LDpred2, and for extra speed gain (cf.\ next section).
+Although we do not require splitting the genome into independent LD blocks anymore (as done in lassosum), we recommend to do so for robustness in LDpred2, and for extra speed gain (cf.\ Methods section \ref{sec:LD}).
 
 \subsection{LDpred2-low-h2 and LDpred2-auto-rob}\label{sec:robust}
 
 Here we introduce the small changes made to LDpred2 (-grid and -auto) in order to make them more robust.
-First, LDpred2-low-h2 simply consists in running LDpred2-grid by testing $h^2$ within $\{0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$ (note the added $0.3$ compared to \cite{prive2020ldpred2}), where $h^2_\text{LDSC}$ is the heritability estimate from LD score regression. Indeed, we show in simulations here that using lower values for $h^2$ may provide higher predictive performance in the case of misspecifications (thanks to more shrinkage of the effects).
+First, LDpred2-low-h2 simply consists in running LDpred2-grid while testing $h^2$ within $\{0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$ (note the added $0.3$ compared to \cite{prive2020ldpred2}), where $h^2_\text{LDSC}$ is the heritability estimate from LD score regression. Indeed, we show in simulations here that using lower values for $h^2$ may provide higher predictive performance in the case of misspecifications (thanks to more shrinkage of the effects).
 In simulations, because of the large misspecifications, we use a larger grid over $\{0.01, 0.1, 0.3, 0.7, 1, 1.4\} \cdot h^2_\text{LDSC}$.
 
-For LDpred2-auto, we introduce two new parameters. The first one, \texttt{shrink\_corr}, allows for shrinking off-diagonal elements of the correlation matrix. This is similar to parameter `s' in lassosum (Section \ref{lassosum2}), and acts as a means of regularization. We use a value of 0.9 in simulations and 0.95 in real data when running ``LDpred2-auto-rob'' (and the default value of 1, with no effect, when running ``LDpred2-auto'').
+For LDpred2-auto, we introduce two new parameters. The first one, \texttt{shrink\_corr}, allows for shrinking off-diagonal elements of the correlation matrix. This is similar to parameter `s' in lassosum (Methods section \ref{lassosum2}), and acts as a means of regularization. We use a value of 0.9 in simulations and 0.95 in real data when running ``LDpred2-auto-rob'' here, and the default value of 1 (with no effect) when running ``LDpred2-auto''.
 The second new parameter, \texttt{allow\_jump\_sign}, controls whether variant effect sizes can change sign over two consecutive iterations of the Gibbs sampler. When setting this parameter to false (in the method we refer to as ``LDpred2-auto-rob'' here), this forces the effects to go through 0 before changing sign. This is useful to prevent instability (oscillation and ultimately divergence) of the Gibbs sampler under large misspecifications, and is also useful for accelerating convergence of chains with a large initial value for $p$ (the proportion of causal variants).
 
 \subsection{New LD reference}\label{sec:LD}
@@ -497,11 +501,11 @@ We also construct versions of these LD references with independent LD blocks, as
 All code used for this paper is available at \url{https://github.com/privefl/paper-misspec/tree/master/code}.
 We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
 
-The latest version of R package bigsnpr can be installed from GitHub, and a recent enough version from CRAN.
-Two tutorials on running LDpred2 and lassosum2 using R package bigsnpr are available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html} and \url{https://privefl.github.io/bigsnpr-extdoc/polygenic-scores-pgs.html}.
+The latest version of R package bigsnpr can be installed from GitHub, and a recent enough version can be installed from CRAN.
+A tutorial on running LDpred2 and lassosum2 using R package bigsnpr is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}.
 
 We have recomputed the allele frequencies and imputation INFO scores within the European subset used here and across all imputed variants in the UK Biobank, and made them available at \url{https://doi.org/10.6084/m9.figshare.16635388}.
-We have formed independent LD blocks within the European LD references provided in \cite{prive2020ldpred2}, and made these updated versions available at \url{https://doi.org/10.6084/m9.figshare.19213299}.
+We have formed independent LD blocks within the Northwestern European LD references provided in \cite{prive2020ldpred2}, and made these updated versions available at \url{https://doi.org/10.6084/m9.figshare.19213299}.
 
 \section*{Acknowledgements}
 
