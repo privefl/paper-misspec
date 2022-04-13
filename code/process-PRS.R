@@ -30,20 +30,23 @@ grid <- tibble::tribble(
   "prca",                               "185",
   "mdd",                                "296.22",
 ) %>%
+  tidyr::unnest("pheno") %>%
+  mutate(whichN = NA) %>%
+  tidyr::expand_grid(use_info = c(FALSE, TRUE)) %>%
+  add_row(pheno = "vitaminD", phecode = "vitaminD", whichN = c("trueN", "maxN"), use_info = FALSE) %>%
   tidyr::expand_grid(
-    qc = c("qc1", "qc2"),
-    use_info = c(FALSE, TRUE),
+    qc = c("noqc", "qc1", "qc2"),
     name_corr = c("data/corr/chr", "data/corr/adj_with_blocks_chr"),
     method = ALL_METHODS) %>%
-  tidyr::unnest("pheno") %>%
   print()
+# 480 different PGS models
 
 
 library(future.apply)
 plan("multisession", workers = NCORES)
 
-grid$effects <- furrr::future_pmap(grid[1:6], function(
-  pheno, phecode, qc, use_info, name_corr, method) {
+grid$effects <- furrr::future_pmap(grid[1:7], function(
+  pheno, phecode, qc, use_info, whichN, name_corr, method) {
 
   # pheno <- "t1d_illu"
   # phecode <- "250.1"
@@ -52,11 +55,14 @@ grid$effects <- furrr::future_pmap(grid[1:6], function(
   # name_corr <- "data/corr/adj_with_blocks_chr"
   # method <- "lassosum2"
 
+
   basename <- paste0(pheno, "_", qc)
   sumstats_file <- paste0("data/sumstats/", basename, ".rds")
+
+  suffix_N <- `if`(is.na(whichN), "", paste0("_", whichN))
+  basename <- paste0("results/", basename, suffix_N)
   if (grepl("blocks", name_corr, fixed = TRUE))
     basename <- paste0(basename, "_adj_with_blocks")
-  basename <- paste0("results/", basename)
 
   res_file <- paste0(basename, "_", method, ".rds")
   if (!file.exists(res_file)) {
@@ -72,10 +78,9 @@ grid$effects <- furrr::future_pmap(grid[1:6], function(
     res <- readRDS(res_file)
     prs_effects <- rep(0, ncol(G))
 
-    sumstats <- readRDS(sumstats_file)[c("_NUM_ID_", "info")]
-
-    num_id <- sumstats[[1]]
-    sqrt_info <- `if`(use_info, sqrt(sumstats[[2]]), rep(1, length(num_id)))
+    num_id <- readRDS(sumstats_file)[["_NUM_ID_"]]
+    sqrt_info <- `if`(use_info, sqrt(readRDS(sumstats_file)[["info"]]), rep(1, length(num_id)))
+    if (pheno == "vitaminD") sqrt_info <- -sqrt_info
 
     prs_effects[num_id] <- if (grepl("LDpred2-auto", method, fixed = TRUE)) {
       all_h2 <- sapply(res, function(auto) auto$h2_est)
@@ -138,26 +143,27 @@ all_res0 <- grid %>%
          method = factor(method, levels = ALL_METHODS)) %>%
   select(-effects, -pred, -phecode, -name_corr) %>%
   tidyr::unnest_wider("pcor", names_sep = "_") %>%
+  mutate(across(starts_with("pcor_"), function(x) sign(x) * x^2)) %>%
   print()
 # saveRDS(all_res0, "results-final/all_res.rds")
 
 
-for (PHENO in c("t1d", "brca", "mdd", "prca", "cad")) {
+for (PHENO in setdiff(unique(all_res0$pheno), "vitaminD")) {
 
-  all_res <- filter(all_res0, grepl(PHENO, pheno)) %>%
+  all_res <- filter(all_res0, pheno == PHENO) %>%
     mutate(use_info = ifelse(use_info, "Yes", "No"))
 
   library(ggplot2)
   ggplot(filter(all_res, !use_blocks),
          aes(method, pcor_1, fill = paste(qc, use_info, sep = " - "))) +
-    facet_wrap(~ pheno, nrow = 1) +
-    bigstatsr::theme_bigstatsr(0.8) +
-    scale_fill_manual(values =  c("#999999", "#E69F00", "#56B4E9", "#009E73")) +
+    facet_wrap(~ pheno, ncol = 1) +
+    bigstatsr::theme_bigstatsr(0.9) +
+    scale_fill_manual(values =  c("#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7")) +
     geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
     geom_errorbar(aes(ymin = pcor_2, ymax = pcor_3),
                   position = position_dodge(width = 0.9),
                   color = "black", width = 0.2, size = 1) +
-    labs(x = "Method", y = "Partial correlation between PGS and phenotype",
+    labs(x = "Method", y = "Partial phenotypic variance explained by PGS",
          fill = "Which QC? - Correction using INFO?") +
     theme(legend.position = "top",
           legend.text = element_text(margin = margin(r = 10, unit = "pt")),
@@ -166,6 +172,30 @@ for (PHENO in c("t1d", "brca", "mdd", "prca", "cad")) {
              position = position_dodge(), color = "red",
              alpha = 0, show.legend = FALSE)
 
-  ggsave(paste0("figures/res-", PHENO, ".pdf"),
-         width = `if`(nrow(all_res) < 50, 9.5, 13.5), height = 6.5)
+  ggsave(paste0("figures/res-", PHENO, ".pdf"), width = 9.5, height = 6.5)
 }
+
+
+PHENO <- "vitaminD"
+all_res <- filter(all_res0, grepl(PHENO, pheno))
+
+library(ggplot2)
+ggplot(filter(all_res, !use_blocks),
+       aes(method, pcor_1, fill = paste(qc, whichN, sep = " - "))) +
+  facet_wrap(~ pheno, ncol = 1) +
+  bigstatsr::theme_bigstatsr(0.9) +
+  scale_fill_manual(values =  c("#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7")) +
+  geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
+  geom_errorbar(aes(ymin = pcor_2, ymax = pcor_3),
+                position = position_dodge(width = 0.9),
+                color = "black", width = 0.2, size = 1) +
+  labs(x = "Method", y = "Partial phenotypic variance explained by PGS",
+       fill = "Which QC? - Which N?") +
+  theme(legend.position = "top",
+        legend.text = element_text(margin = margin(r = 10, unit = "pt")),
+        legend.title = element_text(margin = margin(r = 10, unit = "pt"))) +
+  geom_col(data = filter(all_res, use_blocks),
+           position = position_dodge(), color = "red",
+           alpha = 0, show.legend = FALSE)
+
+ggsave("figures/res-vitaminD.pdf", width = 9.5, height = 6.5)

@@ -126,5 +126,6 @@ info_snp2$is_bad3 <- with(info_snp2, abs(af_val - freq2) > 0.1)
 with(info_snp2, table(is_bad, is_bad2 | is_bad3))
 with(info_snp2, table(is_bad2, is_bad3))
 
+# saveRDS(info_snp2, "data/sumstats/mdd_noqc.rds")
 # saveRDS(filter(info_snp2, !is_bad),            "data/sumstats/mdd_qc1.rds")
 # saveRDS(filter(info_snp2, !is_bad2, !is_bad3), "data/sumstats/mdd_qc2.rds")

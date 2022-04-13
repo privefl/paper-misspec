@@ -107,14 +107,15 @@ plot_grid(
     theme_bw(14) +
     geom_point(alpha = 0.2) +
     labs(x = "INFO recomputed in European subset", y = "INFO reported in MFI files",
-         color = "MAF_reported / MAF_recomputed") +
+         color = expression(frac(MAF_reported, MAF_recomputed))) +
     coord_equal() +
     geom_abline(color = "red") +
     scale_color_viridis_c(trans = "log", breaks = 10^(-3:4)) +
-    theme(legend.position = "top") +
-    guides(color = guide_colorbar(barwidth = 12, ticks.linewidth = 2)),
+    theme(legend.position = c(0.75, 0.15), legend.title.align = 0.5) +
+    guides(color = guide_colorbar(barwidth = 12, ticks.linewidth = 1.5,
+                                  direction = "horizontal", title.position = "top")),
 
-  scale = 0.98, axis = "bl"
+  scale = 0.98
 )
 # ggsave("figures/compare-all-maf-info-chr22.png", width = 13, height = 12)
 

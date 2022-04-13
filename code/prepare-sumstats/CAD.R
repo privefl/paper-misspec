@@ -145,5 +145,6 @@ with(info_snp2, table(is_bad2, is_bad3))            # almost none in common
 
 info_snp2$n_eff <- with(info_snp2, Neff * n_studies / max(n_studies))
 
+# saveRDS(info_snp2, "data/sumstats/cad_noqc.rds")
 # saveRDS(filter(info_snp2, !is_bad),            "data/sumstats/cad_qc1.rds")
 # saveRDS(filter(info_snp2, !is_bad2, !is_bad3), "data/sumstats/cad_qc2.rds")

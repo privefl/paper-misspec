@@ -1,16 +1,21 @@
 
-bigassertr::assert_dir("results")
+bigassertr::assert_dir("results_FIN")
 bigassertr::assert_dir("log")
 
+ALL_CORR <- c(
+  corr_UK             = "data/corr/chr",
+  corr_UK_with_blocks = "data/corr/adj_with_blocks_chr",
+  corr_FIN             = "data/corr_FIN/chr",
+  corr_FIN_with_blocks = "data/corr_FIN/adj_with_blocks_chr",
+  corr_1000G             = "data/corr_1000G_EUR/chr",
+  corr_1000G_with_blocks = "data/corr_1000G_EUR/adj_with_blocks_chr"
+)
+
 library(dplyr)
-files <- tibble(pheno = c(paste0("t1d_", c("affy", "illu")),
-                          paste0("brca_", c("onco", "icogs")),
-                          "cad", "prca", "mdd")) %>%
-  mutate(whichN = NA) %>%
-  add_row(pheno = "vitaminD", whichN = c("trueN", "maxN")) %>%
-  tidyr::expand_grid(
-    qc = c("noqc", "qc1", "qc2"),
-    name_corr = c("data/corr/chr", "data/corr/adj_with_blocks_chr")) %>%
+files <- tibble(pheno = c("brca", "prca", "cad", "t2d", "t1d")) %>%
+  tidyr::expand_grid(name_corr = names(ALL_CORR)) %>%
+  filter(!file.exists(paste0("results_FIN/", pheno, "_", name_corr,
+                             "_LDpred2-auto-rob.rds"))) %>%
   print()
 
 library(future.batchtools)
@@ -19,25 +24,13 @@ plan(batchtools_slurm(resources = list(
   t = "12:00:00", c = NCORES + 2, mem = "120g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
-furrr::future_pwalk(files, function(pheno, whichN, qc, name_corr) {
+furrr::future_pwalk(files, function(pheno, qc, name_corr) {
 
-  # pheno <- "vitaminD"
-  # whichN <- "trueN"
-  # qc <- "qc1"
-  # name_corr <- "data/corr/adj_with_blocks_chr"
+  # pheno <- "brca"
+  # name_corr <- "corr_FIN"
 
-  gwas_file <- paste0("data/sumstats/", pheno, "_", qc, ".rds")
-  sumstats <- readRDS(gwas_file)
-  if (identical(whichN, "maxN"))
-    sumstats$n_eff <- max(sumstats$n_eff)
-
-  suffix_N <- `if`(is.na(whichN), "", paste0("_", whichN))
-  basename <- file.path("results", sub("\\.rds$", suffix_N, basename(gwas_file)))
-  if (grepl("blocks", name_corr, fixed = TRUE))
-    basename <- paste0(basename, "_adj_with_blocks")
-
-  if (file.exists(paste0(basename, "_LDpred2-auto-rob.rds")))
-    return(NULL)
+  sumstats <- readRDS(paste0("data/sumstats_FIN/", pheno, ".rds"))
+  basename <- paste0("results_FIN/", pheno, "_", name_corr)
 
   library(bigsnpr)
   CHR <- snp_attach("data/UKBB_HM3_val.rds")$map$chromosome
@@ -56,7 +49,7 @@ furrr::future_pwalk(files, function(pheno, whichN, qc, name_corr) {
     ## indices in 'corr'
     ind.chr3 <- match(ind.chr2, which(CHR == chr))
 
-    corr0 <- readRDS(paste0(name_corr, chr, ".rds"))
+    corr0 <- readRDS(paste0(ALL_CORR[[name_corr]], chr, ".rds"))
     ld_chr <- Matrix::colSums(corr0^2)
     df_beta_chr <- sumstats[ind.chr, c("beta", "beta_se", "n_eff")]
 

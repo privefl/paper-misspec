@@ -39,21 +39,23 @@ for (k in 1:3) {
   df_beta$lpval[ind_set]   <- -predict(gwas)
 }
 
-df_beta2 <- df_beta; df_beta2$n_eff <- max(df_beta$n_eff)
+df_beta2 <- df_beta; df_beta2$n_eff <- max(df_beta$n_eff)  # using max(N)
 
 # Quality control plot from the LDpred2 paper
 sd_val <- sqrt(big_colstats(G, ind.row = ind.val, ncores = NCORES)$var)
-sd_ss <- 1 / with(df_beta2, sqrt(n_eff * beta_se^2 + beta^2))
+sd_ss <- 1 / with(df_beta2, sqrt(n_eff * beta_se^2 + beta^2))  # using max(N)
 sd_y <- sqrt(0.5) / max(sd_ss)
 sd_ss <- sd_y * sd_ss
 
-qplot(sd_val, sd_ss, alpha = I(0.6), color = as.factor(df_beta$n_eff)) +
+qplot(sd_val, sd_ss, alpha = I(0.6),
+      color = factor(df_beta$n_eff, levels = sort(unique(df_beta$n_eff), decreasing = TRUE))) +
   theme_bigstatsr(0.9) +
   coord_equal() +
   geom_abline(linetype = 2, color = "red") +
-  labs(x = "Standard deviations in the validation set", color = "N",
-       y = "Standard deviations derived from the summary statistics") +
-  theme(legend.position = c(0.25, 0.8))
+  labs(x = "Standard deviations in the validation set", color = "True per-variant\nsample size",
+       y = "Standard deviations derived from the summary statistics (using maxN)") +
+  theme(legend.position = c(0.25, 0.8)) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 2)))
 # ggsave("figures/simu-qc-plot.png", width = 7, height = 7)
 
 # Imputation of N

@@ -23,7 +23,7 @@ beta_lassosum <- snp_lassosum2(corr, df_beta, ncores = NCORES)
 
 # validation
 pred_lassosum <- big_prodMat(G, beta_lassosum, ncores = NCORES)
-params$score <- apply(pred_lassosum[ind.val, ], 2, cor, y = y[ind.val])
+params$score <- apply(pred_lassosum[ind.test, ], 2, cor, y = y[ind.test])
 
 # pseudo-validation
 scale <- with(df_beta, sqrt(n_eff * beta_se^2 + beta^2))

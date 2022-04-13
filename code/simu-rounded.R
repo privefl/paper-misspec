@@ -80,7 +80,8 @@ furrr::future_walk(1:10, function(ic) {
 library(dplyr)
 all_res <- list.files("results-simu-rounded", full.names = TRUE) %>%
   purrr::map_dfr(readRDS) %>%
-  mutate(with_blocks = rep(c(FALSE, FALSE, TRUE, TRUE), 18)) %>%
+  mutate(with_blocks = rep(c(FALSE, FALSE, TRUE, TRUE), 18),
+         rounded = ifelse(rounded, "Yes", "No")) %>%
   tidyr::unnest(c(Method, r2)) %>%
   group_by(Method, with_blocks, rounded) %>%
   summarise(r2 = {
@@ -125,7 +126,7 @@ ggplot(all_res %>% filter(!with_blocks) %>%
          mutate(Method = factor(Method, levels = ALL_METHODS)),
        aes(Method, mean, fill = rounded)) +
   bigstatsr::theme_bigstatsr(0.8) +
-  scale_fill_manual(values =  c("#E69F00", "#56B4E9", "#009E73")) +
+  scale_fill_manual(values =  c("#E69F00", "#56B4E9")) +
   geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
   geom_errorbar(aes(ymin = inf, ymax = sup),
                 position = position_dodge(width = 0.9),

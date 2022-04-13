@@ -146,5 +146,6 @@ sum(info_snp2$is_bad3 <- with(info_snp2, abs(af_val - freq2) > 0.1))  # 21
 with(info_snp2, table(is_bad2, is_bad3))  # none in common
 with(info_snp2, table(is_bad, is_bad2 | is_bad3))
 
+# saveRDS(info_snp2, "data/sumstats/brca_onco_noqc.rds")
 # saveRDS(filter(info_snp2, !is_bad),            "data/sumstats/brca_onco_qc1.rds")
 # saveRDS(filter(info_snp2, !is_bad2, !is_bad3), "data/sumstats/brca_onco_qc2.rds")

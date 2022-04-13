@@ -122,5 +122,6 @@ qplot(sd_val, sd_ss2, color = is_bad3, alpha = I(0.5),
 with(info_snp2, table(is_bad2, is_bad3))
 with(info_snp2, table(is_bad, is_bad2 | is_bad3))
 
+# saveRDS(info_snp2, "data/sumstats/t1d_illu_noqc.rds")
 # saveRDS(filter(info_snp2, !is_bad),            "data/sumstats/t1d_illu_qc1.rds")
 # saveRDS(filter(info_snp2, !is_bad2, !is_bad3), "data/sumstats/t1d_illu_qc2.rds")

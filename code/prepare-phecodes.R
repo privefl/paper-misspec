@@ -69,8 +69,6 @@ phecodes <- createPhenotypes(
   full.population.ids = seq_along(sex)
 )
 
-saveRDS(phecodes[colSums(phecodes, na.rm = TRUE) > 500],
-        "data/all_phecodes.rds")
 
 # some verifs
 table(pheno = phecodes$`185`, sex, exclude = NULL)
@@ -82,3 +80,39 @@ table(pheno = phecodes$`185`, sex, exclude = NULL)
 table(pheno = phecodes$`174.1`, sex, exclude = NULL)
 table(pheno = phecodes$`654.2`, sex, exclude = NULL)
 table(pheno = phecodes$`296.2`, sex, exclude = NULL)
+
+
+phecodes_sub <- phecodes[colSums(phecodes, na.rm = TRUE) > 500]
+
+
+#### Add a few continuous outcomes ####
+
+# Vitamin D (30890)
+y <- fread2(csv, select = "30890-0.0")[[1]]
+hist(y)
+y[y > 150] <- NA
+phecodes_sub$vitaminD <- y
+
+# Standing height (50)
+y <- fread2(csv, select = "50-0.0")[[1]]
+hist(y)
+y[y < 130] <- NA
+phecodes_sub$height <- y
+
+# Body mass index (BMI) (21001)
+y <- fread2(csv, select = "21001-0.0")[[1]]
+hist(y)
+phecodes_sub$bmi <- y
+
+# Systolic blood pressure, automated reading (4080)
+y <- fread2(csv, select = "4080-0.0")[[1]]
+hist(y)
+phecodes_sub$systolic_bp <- y
+
+# HDL cholesterol (30760)
+y <- fread2(csv, select = "30760-0.0")[[1]]
+hist(y)
+phecodes_sub$hdl_cholesterol <- y
+
+
+saveRDS(phecodes_sub, "data/all_phecodes.rds")

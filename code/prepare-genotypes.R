@@ -1,19 +1,24 @@
 # file.symlink("../../UKBB/", "UKBB")
 
-map_hapmap3 <- readRDS(url("https://ndownloader.figshare.com/files/25503788"))
+list_snp_id <- runonce::save_run({
 
-library(doParallel)
-cl <- makeCluster(22)
-parallel::clusterExport(cl, "map_hapmap3")
-list_snp_id <- parLapply(cl, 1:22, function(chr) {
-  mfi <- paste0("UKBB/mfi/ukb_mfi_chr", chr, "_v3.txt")
-  infos_chr <- bigreadr::fread2(mfi, showProgress = FALSE)
-  joined <- dplyr::inner_join(cbind(chr = chr, infos_chr), map_hapmap3[1:2],
-                              by = c("chr", "V3" = "pos"))
-  with(joined[!vctrs::vec_duplicate_detect(joined$V3), ],
-       paste(chr, V3, V4, V5, sep = "_"))
-})
-stopCluster(cl)
+  map_hapmap3 <- readRDS(url("https://ndownloader.figshare.com/files/25503788"))
+
+  library(doParallel)
+  cl <- makeCluster(22)
+  parallel::clusterExport(cl, "map_hapmap3")
+  list_snp_id <- parLapply(cl, 1:22, function(chr) {
+    mfi <- paste0("UKBB/mfi/ukb_mfi_chr", chr, "_v3.txt")
+    infos_chr <- bigreadr::fread2(mfi, showProgress = FALSE)
+    joined <- dplyr::inner_join(cbind(chr = chr, infos_chr), map_hapmap3[1:2],
+                                by = c("chr", "V3" = "pos"))
+    with(joined[!vctrs::vec_duplicate_detect(joined$V3), ],
+         paste(chr, V3, V4, V5, sep = "_"))
+  })
+  stopCluster(cl)
+
+  list_snp_id
+}, file = "data/list_snp_id_HM3.rds")
 
 sum(lengths(list_snp_id))  # 1,054,315
 

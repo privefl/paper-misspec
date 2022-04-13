@@ -175,7 +175,7 @@ When using the total GWAS sample size instead of the per-variant sample sizes, p
 This extreme simulation scenario shows that LDpred2 can be sensitive to the misspecification of per-variant GWAS sample sizes, whereas lassosum (and lassosum2) seems little affected by this.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=\textwidth]{simu-misN}}
+	\centerline{\includegraphics[width=0.9\textwidth]{simu-misN}}
 	\caption{Results for the simulations with sample size misspecification, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, ``imputed'' (cf.\ equation \eqref{eq:imputeN}), or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}); this strategy cannot be tested straightforwardly for C+T and lassosum.}
 	\label{fig:simu-misN}
 \end{figure}
@@ -216,7 +216,7 @@ In the real data applications hereinafter, we choose to use the first correction
 
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=\textwidth]{simu-info}}
+	\centerline{\includegraphics[width=0.9\textwidth]{simu-info}}
 	\caption{Results of predictive performance for the simulations using GWAS summary statistics from imputed dosage data, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Correction ``sqrt\_info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$.
 	Correction ``info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$  and $n_j \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$, and $n_j \cdot \text{INFO}_j$. Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}).}
 	\label{fig:simu-info}
@@ -232,7 +232,7 @@ When using this alternative LD reference panel instead of a well-matched one as 
 Forming independent LD blocks in these two LD matrices always helps, but do not improve performance by much when using the alternative LD.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=\textwidth]{simu-altpop}}
+	\centerline{\includegraphics[width=0.9\textwidth]{simu-altpop}}
 	\caption{Results for the simulations with summary statistics with LD matrices based on two different populations. One comes from the same population used for computing the GWAS summary statistics (North-West Europe), while the other one comes from South Europe (alternative LD reference). Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}).}
 	\label{fig:simu-altpop}
 \end{figure}
@@ -250,7 +250,7 @@ To validate this hypothesis, we simulate a phenotype using HapMap3 variants of c
 In these simulations, the same bias as in figure \ref{fig:brca_onco_qc}B is observed for the variants in this region (Figure \ref{fig:gwas_bad_pc}), confirming our hypothesis.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=\textwidth]{brca_onco_qc}}
+	\centerline{\includegraphics[width=0.9\textwidth]{brca_onco_qc}}
 	\caption{Standard deviations inferred from the OncoArray breast cancer GWAS summary statistics using equation \eqref{eq:approx-sd-log} (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies $f_j$ (using $\sqrt{2 f_j (1 - f_j)}$). Only 100,000 HapMap3 variants are represented, at random.}
 	\label{fig:brca_onco_qc}
 \end{figure}
@@ -272,7 +272,7 @@ For MDD and PRCA, most changes introduced before have little to no impact on pre
 For CAD and T1D, the QC proposed in \cite{prive2020ldpred2} and the additional QC proposed here provides much better predictive performance, especially for LDpred2-auto (and LDpred2-auto-rob) than when using no quality control, showing how important this preliminary step is.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=0.67\textwidth]{res-cad}}
+	\centerline{\includegraphics[width=0.85\textwidth]{res-cad}}
 	\caption{Variance explained of CAD in the UK Biobank by PGS derived from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared. Red bars correspond to using the LD with independent blocks (Methods).}
 	\label{fig:res_cad}
 \end{figure}
@@ -286,7 +286,7 @@ When the maximum sample size is used, this ``qc2'' is very important, especially
 Note that, when using the maximum sample size to derive ``sd\_ss'' in ``qc1'' (not the case here; we used the per-variant sample sizes), ``qc1'' would remove variants with underestimated standard deviations due to overestimated sample sizes, which would effectively remove variants with low sample sizes (Figure \ref{fig:qcplot}), similar to the ``qc2'' used here.
 
 \begin{figure}[!h]
-	\centerline{\includegraphics[width=0.67\textwidth]{res-vitaminD}}
+	\centerline{\includegraphics[width=0.85\textwidth]{res-vitaminD}}
 	\caption{Variance explained of vitamin D in the UK Biobank by PGS derived from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared. Red bars correspond to using the LD with independent blocks (Methods).}
 	\label{fig:res_vitaminD}
 \end{figure}
@@ -520,7 +520,7 @@ F.P.\ and B.J.V.\ are supported by the Danish National Research Foundation (Niel
 \section*{Declaration of Interests}
 
 B.J.V.\ is on Allelica's international advisory board.
-The other authors declare no competing interests.
+The other authors have no competing interests to declare.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
