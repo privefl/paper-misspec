@@ -91,15 +91,27 @@
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{lassosum2-misN}}
-	\caption{Multiple results (squared correlation $r^2$ between polygenic score and phenotype) over a grid of parameters ($\lambda$ and $\delta$) for lassosum2 in one of the simulations with misspecified GWAS sample sizes ($n_j$). The different colors indicate whether we use the maximum of $n_j$'s (``maxN'') or the imputed $n_j$'s (``imputeN''), and the normal LD matrix (``normal'') or the one with independent LD blocks (``with\_indep\_ld'').  Missing points represent models that were detected as divergent.}
+	\caption{Multiple results (squared correlation $r^2$ between polygenic score and phenotype) over a grid of parameters ($\lambda$ and $\delta$) for lassosum2 in one of the simulations with misspecified GWAS sample sizes ($n_j$). The different colors indicate whether we use the maximum of $n_j$'s (``maxN'') or the imputed $n_j$'s (``imputeN''), and the normal LD matrix (``normal'') or the one with independent LD blocks (``with LD blocks'').  Missing points represent models that were detected as divergent.}
 	\label{fig:lassosum2-misN}
 \end{figure}
 
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{ldpred2-misN}}
-	\caption{Multiple results (squared correlation $r^2$ between polygenic score and phenotype) over a grid of parameters (the SNP heritability $h^2$ and the proportion of causal variants $p$) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes ($n_j$). The different colors indicate whether we use the maximum of $n_j$'s (``maxN'') or the imputed $n_j$'s (``imputeN''), and the normal LD matrix (``normal'') or the one with independent LD blocks (``with\_indep\_ld''). Note that the small $h^2$ values (0.002, 0.02, 0.06) were added and are part of the method we call ``LDpred2-low-h2'' in the main text. Missing points represent models that were detected as divergent.}
+	\caption{Multiple results (squared correlation $r^2$ between polygenic score and phenotype) over a grid of parameters (the SNP heritability $h^2$ and the proportion of causal variants $p$) for LDpred2(-grid) in one of the simulations with misspecified GWAS sample sizes ($n_j$). The different colors indicate whether we use the maximum of $n_j$'s (``maxN'') or the imputed $n_j$'s (``imputeN''), and the normal LD matrix (``normal'') or the one with independent LD blocks (``with LD blocks''). Note that the small $h^2$ values (0.002, 0.02, 0.06) were added and are part of the method we call ``LDpred2-low-h2'' in the main text. Missing points represent models that were detected as divergent.}
 	\label{fig:ldpred2-misN}
+\end{figure}
+
+\begin{figure}[!h]
+	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN-smallh2}}
+	\caption{Results for the simulations with sample size misspecification and a heritability of 4\%, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, ``imputed'', or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks, which is a requirement in lassosum and PRS-CS.}
+	\label{fig:simu-misN-smallh2}
+\end{figure}
+
+\begin{figure}[!h]
+	\centerline{\includegraphics[width=\textwidth]{simu-misN-shrunk}}
+	\caption{Results for the simulations with sample size misspecification and a heritability of 20\% (bottom panels) or 4\% (top panels), averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, or ``imputed''. Red bars correspond to using the LD with independent blocks. Bars filled in blue correspond to using the shrunk LD matrix computed from GCTB \cite[]{lloyd2019improved}, otherwise the windowed LD matrix from LDpred2 is used.}
+	\label{fig:simu-misN-shrunk}
 \end{figure}
 
 
