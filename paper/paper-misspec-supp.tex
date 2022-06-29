@@ -76,6 +76,12 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{cost_split_chr22}}
+	\caption{Results of different block splits of the LD matrix of chromosome 22 used in simulations, for different numbers of blocks and maximum number of variants in each block. The black point corresponds to the final split chosen.}
+	\label{fig:cost-split}
+\end{figure}
+
 \FloatBarrier
 
 \begin{figure}[h]
@@ -102,13 +108,13 @@
 	\label{fig:ldpred2-misN}
 \end{figure}
 
-\begin{figure}[!h]
+\begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{simu-misN-smallh2}}
 	\caption{Results for the simulations with sample size misspecification and a heritability of 4\%, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, ``imputed'', or ``any'' when the method does not use this information (the case for C+T). Red bars correspond to using the LD with independent blocks, which is a requirement in lassosum and PRS-CS.}
 	\label{fig:simu-misN-smallh2}
 \end{figure}
 
-\begin{figure}[!h]
+\begin{figure}[p]
 	\centerline{\includegraphics[width=\textwidth]{simu-misN-shrunk}}
 	\caption{Results for the simulations with sample size misspecification and a heritability of 20\% (bottom panels) or 4\% (top panels), averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. The GWAS sample size is either ``true'' when providing the true per-variant sample size, ``max'' when providing instead the maximum sample size as a unique value to be used for all variants, or ``imputed''. Red bars correspond to using the LD with independent blocks. Bars filled in blue correspond to using the shrunk LD matrix computed from GCTB \cite[]{lloyd2019improved}, otherwise the windowed LD matrix from LDpred2 is used.}
 	\label{fig:simu-misN-shrunk}
@@ -160,6 +166,38 @@
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.98\textwidth]{compare-all-maf-info-chr22}}
 	\caption{Minor allele frequencies (MAF) and INFO scores in the UK Biobank for 50,000 variants on chromosome 22 (chosen at random). These are either reported (in MFI files from the UK Biobank), recomputed from the whole data or from the subset of 362,307 European individuals used in this paper. MAF are represented on a log scale. \label{fig:compare-maf-info}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{simu-info-smallh2}}
+	\caption{Results of predictive performance for the simulations (with a heritability of 4\%) using GWAS summary statistics from imputed dosage data, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Correction ``sqrt\_info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$ and $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$.
+	Correction ``info'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$  and $n_j \cdot \text{INFO}_j$. Correction ``in\_between'' corresponds to using $\hat{\gamma}_j^{\text{imp}} \cdot \text{INFO}_j$, $\text{se}(\hat{\gamma}_j)^{\text{imp}} \cdot \sqrt{\text{INFO}_j}$, and $n_j \cdot \text{INFO}_j$. Red bars correspond to using the LD with independent blocks.}
+	\label{fig:simu-info-smallh2}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
+\begin{figure}[p]
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\includegraphics[width=.95\linewidth]{af_alt_pop}
+	\end{subfigure}\vspace{1em}
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\includegraphics[width=.95\linewidth]{corr_alt_pop}
+	\end{subfigure}
+	\caption{Comparison of allele frequencies and pairwise correlations between the two LD reference panels used in the simulations, one from North-West Europe and the alternative one from South Europe.}
+	\label{fig:compare-altpop}
+\end{figure}
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{simu-altpop-smallh2}}
+	\caption{Results for the simulations with summary statistics with LD matrices based on two different populations, using a heritability of 4\% (instead of 20\%). One comes from the same ancestry used for computing the GWAS summary statistics (North-West Europe), while the other one comes from South Europe (alternative LD reference). Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods section \ref{sec:LD}), which is a requirement for PRS-CS.}
+	\label{fig:simu-altpop-smallh2}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -300,6 +338,12 @@
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{res-cad-shrinkage}}
+	\caption{Variance explained of CAD in the UK Biobank by PGS derived from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared. Red bars correspond to using the LD with independent blocks (Methods). Parameter \texttt{shrinkage} corresponds to the new parameter of LDpred2-auto.}
+	\label{fig:res_cad_shrinkage}
+\end{figure}
 
 \FloatBarrier
 
