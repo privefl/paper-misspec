@@ -71,25 +71,35 @@
 
 \section*{Supplementary Materials}
 
-\vspace*{5em}
+\vspace*{7em}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[!h]
+	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
+	\caption{Histogram of the imputation INFO scores of the 40,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
+	\caption{For one simulation, scores from validation versus scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values, when computing local false discovery rates.}
+	\label{fig:pseudoval}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\FloatBarrier
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{cost_split_chr22}}
 	\caption{Results of different block splits of the LD matrix of chromosome 22 used in simulations, for different numbers of blocks and maximum number of variants in each block. The black point corresponds to the final split chosen.}
 	\label{fig:cost-split}
 \end{figure}
-
-\FloatBarrier
-
-\begin{figure}[h]
-	\centerline{\includegraphics[width=0.7\textwidth]{simu-qc-plot}}
-	\caption{Quality control plot, as proposed in \cite{prive2020ldpred2}, for the simulations with sample size misspecification. The standard deviations are derived from the summary statistics assuming the same global GWAS sample size for all variants (300,000).}
-	\label{fig:qcplot}
-\end{figure}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -120,15 +130,6 @@
 	\label{fig:simu-misN-shrunk}
 \end{figure}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\FloatBarrier
-
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.8\textwidth]{simu_hist_info}}
-	\caption{Histogram of the imputation INFO scores of the 40,000 variants from chromosome 22 of the UK Biobank data used in the simulations. \label{fig:hist-info}}
-\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -205,30 +206,26 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.9\textwidth]{simu-rounded}}
-	\caption{Results for the simulations with summary statistics (effect sizes and their standard errors) possibly rounded to two significant digits, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods).}
-	\label{fig:simu-rounded}
+	\centerline{\includegraphics[width=0.65\textwidth]{brca_onco_hist_info}}
+	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. \label{fig:hist-info-brca}}
 \end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\FloatBarrier
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.65\textwidth]{brca_icogs_hist_info}}
 	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the iCOGS GWAS summary statistics for breast cancer \cite[]{michailidou2013large}. \label{fig:hist-info-brca2}}
 \end{figure}
 
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.65\textwidth]{brca_onco_hist_info}}
-	\caption{Histogram of the imputation INFO scores of the HapMap3 variants from the OncoArray GWAS summary statistics for breast cancer \cite[]{michailidou2017association}. \label{fig:hist-info-brca}}
-\end{figure}
-
 \FloatBarrier
 
 \begin{figure}[p]
+	\centerline{\includegraphics[width=0.95\textwidth]{brca_icogs_qc}}
+	\caption{Standard deviations inferred from the iCOGS breast cancer GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
+	\label{fig:brca_icogs_qc}
+\end{figure}
+
+\begin{figure}[p]
 	\centerline{\includegraphics[width=0.75\textwidth]{hist_bad_pos}}
-	\caption{Histogram of the positions of outlier variants from Figure 5B in the main text.%TODO: VERIF NUMBER AT THE END
+	\caption{Histogram of the positions of outlier variants from Figure 4B in the main text.%TODO: VERIF NUMBER AT THE END
 	\label{fig:hist-bad-pos}}
 \end{figure}
 
@@ -243,10 +240,12 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.95\textwidth]{brca_icogs_qc}}
-	\caption{Standard deviations inferred from the iCOGS breast cancer GWAS summary statistics (\textbf{A:} Raw or \textbf{B:} dividing them by $\sqrt{\text{INFO}}$) versus the ones inferred from the reported GWAS allele frequencies. Only 100,000 variants are represented, at random.}
-	\label{fig:brca_icogs_qc}
+	\centerline{\includegraphics[width=0.7\textwidth]{res-brca_icogs}}
+	\caption{Variance explained of BRCA in the UK Biobank by PGS derived from external summary statistics (iCOGS). These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
+	\label{fig:res_brca_icogs}
 \end{figure}
+
+\FloatBarrier
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{cad_qc}}
@@ -283,12 +282,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \FloatBarrier
-
-\begin{figure}[p]
-	\centerline{\includegraphics[width=0.7\textwidth]{res-brca_icogs}}
-	\caption{Variance explained of BRCA in the UK Biobank by PGS derived from external summary statistics (iCOGS). These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared.}
-	\label{fig:res_brca_icogs}
-\end{figure}
 
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.7\textwidth]{res-brca_onco}}
@@ -339,6 +332,17 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\FloatBarrier
+
+\begin{figure}[p]
+	\centerline{\includegraphics[width=0.7\textwidth]{simu-qc-plot}}
+	\caption{Quality control plot, as proposed in \cite{prive2020ldpred2}, for the simulations with sample size misspecification. The standard deviations are derived from the summary statistics assuming the same global GWAS sample size for all variants (300,000).}
+	\label{fig:qcplot}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \begin{figure}[p]
 	\centerline{\includegraphics[width=0.95\textwidth]{res-cad-shrinkage}}
 	\caption{Variance explained of CAD in the UK Biobank by PGS derived from external summary statistics. These are computed using function \texttt{pcor} of R package bigstatsr where 95\% confidence intervals are obtained through Fisher's Z-transformation; these values are then squared. Red bars correspond to using the LD with independent blocks (Methods). The shrinkage corresponds to the new parameter \texttt{shrink\_corr} of LDpred2-auto.}
@@ -358,9 +362,9 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.85\textwidth]{pseudoval}}
-	\caption{For one simulation, scores from validation versus scores from pseudo-validation as described in \cite{mak2017polygenic} using either \textbf{A:} correlations (the default in lassosum) or \textbf{B:} p-values, when computing local false discovery rates.}
-	\label{fig:pseudoval}
+	\centerline{\includegraphics[width=0.95\textwidth]{compare-cor}}
+	\caption{Comparing pairwise correlations between a subset of HapMap3 variants on chromosome 1 with an INFO score lower than 0.85, computed in three different ways: 1/ (left y-axis) from imputed dosages using 10,000 individuals from the UK Biobank (UKBB) data; 2/ (right y-axis) from multiple imputation (i.e.\ generating multiple complete datasets sampled according to imputation probabilities, computing correlations, and averaging results) also using UKBB; 3/ (common x-axis) from 190 individuals from the 1000 Genomes data (GBR and CEU). Each point, representing the correlation between two variants, is colored by the geometric mean of the INFO scores of these two variants.}
+	\label{fig:compare-cor}
 \end{figure}
 
 
@@ -369,11 +373,10 @@
 \FloatBarrier
 
 \begin{figure}[p]
-	\centerline{\includegraphics[width=0.95\textwidth]{compare-cor}}
-	\caption{Comparing pairwise correlations between a subset of HapMap3 variants on chromosome 1 with an INFO score lower than 0.85, computed in three different ways: 1/ (left y-axis) from imputed dosages using 10,000 individuals from the UK Biobank (UKBB) data; 2/ (right y-axis) from multiple imputation (i.e.\ generating multiple complete datasets sampled according to imputation probabilities, computing correlations, and averaging results) also using UKBB; 3/ (common x-axis) from 190 individuals from the 1000 Genomes data (GBR and CEU). Each point, representing the correlation between two variants, is colored by the geometric mean of the INFO scores of these two variants.}
-	\label{fig:compare-cor}
+	\centerline{\includegraphics[width=0.9\textwidth]{simu-rounded}}
+	\caption{Results for the simulations with summary statistics (effect sizes and their standard errors) possibly rounded to two significant digits, averaged over 10 simulations for each scenario. Reported 95\% confidence intervals are computed from 10,000 non-parametric bootstrap replicates of the mean. Red bars correspond to using the LD with independent blocks (Methods).}
+	\label{fig:simu-rounded}
 \end{figure}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
