@@ -289,7 +289,7 @@ Using 40,000 variants from chromosome 22 (Methods), we simulate quantitative phe
 This is implemented in function \texttt{snp\_simuPheno} of R package bigsnpr \cite[]{prive2017efficient}.}
 We then randomly divide the 40,000 variants into three groups: for half of the variants, we use 100\% of 300,000 individuals for GWAS, but use only 80\% for one quarter of the variants and 60\% for the remaining quarter. 
 {\color{red}We use a simple linear regression for GWAS, as implemented in function \texttt{big\_univLinReg} of R package bigstatsr \cite[]{prive2017efficient}.}
-We then run C+T, lassosum, lassosum2 (Methods section \ref{lassosum2}), LDpred2-inf, LDpred2(-grid), LDpred2-auto, SBayesR, and PRS-CS-auto \cite[]{prive2019making,mak2017polygenic,prive2020ldpred2,lloyd2019improved,ge2019polygenic} by using either the true per-variant GWAS sample sizes, the total sample size for all variants, or per-variant sample sizes imputed using equation \eqref{eq:imputeN}.
+We then run C+T, lassosum, lassosum2 (Methods section \ref{lassosum2}), LDpred2-inf, LDpred2(-grid), LDpred2-auto{\color{red}, SBayesR (GCTB v2.03 with the automatic \texttt{robust} option), and PRS-CS-auto} \cite[]{prive2019making,mak2017polygenic,prive2020ldpred2,lloyd2019improved,ge2019polygenic} by using either the true per-variant GWAS sample sizes, the total sample size for all variants, or per-variant sample sizes imputed using equation \eqref{eq:imputeN}.
 When providing true per-variant GWAS sample sizes, squared correlations between the polygenic scores and the simulated phenotypes are of 0.123 for C+T, 0.160 for lassosum, 0.169 for lassosum2, 0.159 for LDpred2(-grid), 0.140 for LDpred2-auto, 0.141 for LDpred2-inf, 0.138 for SBayesR, and 0.159 for PRS-CS-auto (Figure \ref{fig:simu-misN}, averaging over 10 simulations).
 Results when using imputed sample sizes are very similar to when using the true ones.
 Note that C+T does not use this sample size information{\color{red}, and that PRS-CS can only be provided with a single value (we use the maximum one)}.
@@ -315,7 +315,7 @@ Results with LDpred2-low-h2 improves from 0.159 to 0.169 when using true sample 
 Finally, we introduce a last change for robustness here: we form independent LD blocks in the LD matrix to prevent small errors in the Gibbs sampler to propagate to too many variants (Methods section \ref{sec:LD}). This change seems to solve convergence issues of LDpred2 in these simulations (Figure \ref{fig:ldpred2-misN}) and further improves predictive performance for all LDpred2 methods (Figure \ref{fig:simu-misN}).
 
 {\color{red}As secondary analysis, we rerun these simulations with a smaller heritability of 4\% instead. While predictive performance are overall much lower, relative performance are less attenuated when using the maximum sample size, otherwise results are highly consistent as before (Figure \ref{fig:simu-misN-smallh2}).
-We also try using the shrunk LD matrix from GCTB that is used e.g.\ for SBayesR \cite[]{lloyd2019improved}; in these simulations, higher predictive performance are obtained from LDpred2-auto with this shrunk LD matrix, whereas SBayesR benefit from using LDpred2's windowed LD matrix (Figure \ref{fig:simu-misN-shrunk}).}
+We also try using the shrunk LD matrix from GCTB that is used e.g.\ for SBayesR \cite[]{lloyd2019improved}; in these simulations, higher predictive performance are obtained for LDpred2-auto with this shrunk LD matrix, whereas SBayesR benefit from using LDpred2's windowed LD matrix (Figure \ref{fig:simu-misN-shrunk}).}
 
 
 \subsection{Misspecification when using imputed allele dosages}\label{sec:imputation}
@@ -338,9 +338,9 @@ The LD references are computed from the validation set using the dataset with th
 For lassosum2 and LDpred2(-grid), which tune parameters using the validation set, correcting for imputation quality slightly improves predictive performance in these simulations (Figure \ref{fig:simu-info}).
 However, correcting for imputation quality can dramatically improve predictive performance for LDpred2-auto, provided the imputation quality is well estimated. 
 Moreover, new additions for robustness introduced before, namely LDpred2-low-h2, LDpred2-auto-rob, and forming independent blocks in the LD matrix also improve predictive performance for all corrections (Figure \ref{fig:simu-info}).
-{\color{red}However, these corrections do not prove beneficial for PRS-CS-auto (Figure \ref{fig:simu-info}).
+{\color{red}However, these corrections do not prove beneficial for PRS-CS-auto (Figure \ref{fig:simu-info}).}
 
-When performing similar simulations with a heritability of 4\% (instead of 20\%), correction ``sqrt\_info'' still provides slightly higher predictive performance for all methods (compared to no correction), yet the other two corrections sometimes provide lower predictive performance (Figure \ref{fig:simu-info-smallh2}).}
+{\color{red}When performing similar simulations with a heritability of 4\% (instead of 20\%), correction ``sqrt\_info'' still provides slightly higher predictive performance for all methods (compared to no correction), yet the other two corrections sometimes provide lower predictive performance (Figure \ref{fig:simu-info-smallh2}).}
 In the real data applications hereinafter, we therefore choose to use the first correction, ``sqrt\_info'', which seems to more consistently provide better results, and is simple because it is somewhat equivalent to post-processing PGS effects by multiplying them by $\sqrt{\text{INFO}}$.
 
 
@@ -425,7 +425,7 @@ Note that, when using the maximum sample size to derive ``sd\_ss'' in ``qc1'' (n
 \end{figure}
 
 {\color{red}For all phenotypes, PRS-CS-auto is very robust, whatever the QC procedure used (e.g.\ see the results for CAD, Figure \ref{fig:res_cad}). We believe this is because of the strong regularization used internally. We then run LDpred2-auto-rob for CAD with different shrinkage multiplicative coefficients for the off-diagonal elements of the LD matrix, from 1 (LD matrix unchanged) to 0 (using the identity matrix instead).
-When using a strong shrinkage of 0.3 or 0.4, results for LDpred2-auto-rob are similar whatever the QC used (Figure \ref{fig:res_cad_shrinkage}), as previously observed for PRS-CS-auto. Results with LDpred2-auto-rob are always best when using ``qc2'', the most stringent QC; then no shrinkage (1) seems needed, while a strong shrinkage make predictive performance drop.
+When using a strong shrinkage of 0.3 or 0.4, results for LDpred2-auto-rob are similar whatever the QC used (Figure \ref{fig:res_cad_shrinkage}), as previously observed for PRS-CS-auto. Results with LDpred2-auto-rob are always best when using ``qc2'', the most stringent QC; then no shrinkage (1) seems needed, whereas a strong shrinkage make predictive performance drop.
 For phenotypes with relatively large genetic effects (e.g.\ vitamin D, Figure \ref{fig:res_vitaminD}), PRS-CS-auto perform much worse, possibly due to using too much regularization.}
 
 \subsection{Application to FinnGen and Biobank Japan summary statistics}
@@ -463,7 +463,8 @@ Third, the LD reference panel should be as close as possible (in terms of geneti
 Fourth, if some validation data is available for tuning hyper-parameters, one can use methods such as lassosum2 and LDpred2(-grid). The grid of parameters used in lassosum2 includes a broad range of regularization, which makes it very robust. For LDpred2, we recommend to also include a smaller value for the heritability in the grid of parameters, to allow for more regularization when needed. As these two methods use the same data and the same principle (i.e.\ hyper-parameter tuning), one could run both methods and should the best one when tuning hyper-parameters.
 Fifth, if no validation/tuning dataset is available, we recommend using LDpred2-auto with the two new parameters introduced here, or PRS-CS-auto if there are strong misspecifications and the phenotype of interest is known to have small effects only. 
 Sixth, we recommend to form independent LD blocks in the 
-LD matrix as it proved to make the methods more robust (and slightly faster).}
+LD matrix as it proved to make the methods more robust (and slightly faster).
+Most of these new recommendations are included in the LDpred2 tutorial.}
 
 \begin{table}[!htb]
 	\centering
@@ -550,17 +551,6 @@ It would also be useful to investigate the impact of the QC, well-matched LD ref
 \clearpage
 %\vspace*{3em}
 
-\section*{Code and data availability}
-
-All code used for this paper is available at \url{https://github.com/privefl/paper-misspec/tree/master/code}.
-We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
-
-The latest version of R package bigsnpr can be installed from GitHub, and a recent enough version can be installed from CRAN.
-A tutorial on running LDpred2 and lassosum2 using R package bigsnpr is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}.
-
-We have recomputed the allele frequencies and imputation INFO scores within the European subset used here and across all imputed variants in the UK Biobank, and made them available at \url{https://doi.org/10.6084/m9.figshare.16635388}.
-We have formed independent LD blocks within the Northwestern European LD references provided in \citet{prive2020ldpred2}, and made these updated versions available at \url{https://doi.org/10.6084/m9.figshare.19213299}.
-
 \section*{Acknowledgements}
 
 Authors thank Timothy Shin Heng Mak, Shing Wan Choi, and Matthew Stephens for helpful discussions. 
@@ -575,6 +565,22 @@ F.P.\ and B.J.V.\ are supported by the Danish National Research Foundation (Niel
 
 B.J.V.\ is on Allelica's international advisory board.
 The other authors have no competing interests to declare.
+
+\section*{Code and data availability}
+
+The UK Biobank data is available through a procedure described at \url{https://www.ukbiobank.ac.uk/using-the-resource/}. 
+All code used for this paper is available at \url{https://github.com/privefl/paper-misspec/tree/master/code}.
+We have extensively used R packages bigstatsr and bigsnpr \cite[]{prive2017efficient} for analyzing large genetic data, packages from the future framework \cite[]{bengtsson2020unifying} for easy scheduling and parallelization of analyses on the HPC cluster, and packages from the tidyverse suite \cite[]{wickham2019welcome} for shaping and visualizing results.
+The latest version of R package bigsnpr can be installed from GitHub, and a recent enough version can be installed from CRAN.
+
+
+\section*{Web resources}
+
+\noindent A tutorial on running LDpred2 and lassosum2 using R package bigsnpr is available at \url{https://privefl.github.io/bigsnpr/articles/LDpred2.html}.
+
+\noindent We have recomputed the allele frequencies and imputation INFO scores within the European subset used here and across all imputed variants in the UK Biobank, and made them available at \url{https://doi.org/10.6084/m9.figshare.16635388}.
+
+\noindent We have formed independent LD blocks within the Northwestern European LD references provided in \citet{prive2020ldpred2}, and made these updated versions available at \url{https://doi.org/10.6084/m9.figshare.19213299}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
