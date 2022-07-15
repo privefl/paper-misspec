@@ -73,7 +73,7 @@
 
 \noindent$^{\text{\sf 1}}$National Centre for Register-Based Research, Aarhus University, Aarhus, 8210, Denmark. \\
 \noindent$^{\text{\sf 2}}$Univ.\ Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK, Grenoble, 38000, France. \\
-\noindent$^{\text{\sf 3}}$Department of Computational Biology, Institut Pasteur, Paris, 75015, France. \\
+\noindent$^{\text{\sf 3}}$Department of Computational Biology, Institut Pasteur,  Universit\'e Paris Cit\'e, Paris, 75015, France. \\
 \noindent$^{\text{\sf 4}}$Program in Genetic Epidemiology and Statistical Genetics, Harvard T.H. Chan School of Public Health, Boston, MA, 02115, USA. \\
 \noindent$^{\text{\sf 5}}$Bioinformatics Research Centre, Aarhus University, Aarhus, 8000, Denmark. \\
 \noindent$^\ast$To whom correspondence should be addressed.\\
@@ -258,7 +258,8 @@ The second new parameter, \texttt{allow\_jump\_sign}, controls whether variant e
 
 We form nearly independent LD blocks using the optimal algorithm developed in \citet{prive2021optimal}.
 {\color{red}Note that a new parameter \texttt{max\_r2} has been added to this method since, which controls the maximum single squared correlation allowed outside blocks, which offers an extra guarantee that the splitting is good and makes the function much faster by discarding lots of possible splits.
-For different numbers of blocks and maximum number of variants in each block, we use the split that minimizes $\big(C2 \cdot \sqrt{5 + C1}\big)$, where $C1$ is the sum of squared correlations outside the blocks, and $C2$ is the sum of squared sizes of the blocks (Figure \ref{fig:cost-split}).}
+For different numbers of blocks and maximum number of variants in each block, we use the split that minimizes $\big(C2 \cdot \sqrt{5 + C1}\big)$, where $C1$ is the sum of squared correlations outside the blocks, and $C2$ is the sum of squared sizes of the blocks (Figure \ref{fig:cost-split}).
+Twelve blocks from chromosome 22 are used in the simulations, and between 731 and 2527 in the real data analyses (cf.\ next section).}
 Having a correlation matrix with independent blocks prevents small errors in the algorithm (e.g.\ the Gibbs sampler in LDpred2) from propagating to too many variants.
 It also makes running LDpred2 (and lassosum2) faster, taking e.g.\ 70\% of the initial time (since only 70\% of the initial non-zero values of the correlation matrix are kept).
 {\color{red}Note that we also compute the correlations within the same blocks and from the same data for PRS-CS.}
@@ -271,12 +272,14 @@ Therefore, using both this new format and the LD blocks should divide computatio
 To be used with GWAS summary statistics from FinnGen, we investigate three different LD reference panels.
 To define homogeneous ancestry groups in the UK Biobank, we include all individuals within a specific distance to a population center in the PCA space \cite[]{prive2021high,prive2021using}.
 We use either the 503 European (including 99 Finnish) individuals from the 1000 Genomes (1000G) data \cite[]{10002015global}, 404 Finnish-like UKBB + the 99 Finnish 1000G individuals (also 503 in total), or the 10,000 UK individuals from the validation set we use in this paper.
+{\color{red}1454, 731, and 1165 independent LD blocks are identified for these three LD references, respectively.}
 
 To be used with GWAS summary statistics from Biobank Japan, we also investigate three different LD reference panels.
 We use either the 504 East Asian (including 104 Japanese) individuals from the 1000G, 400 Japanese-like UKBB + the 104 Japanese 1000G individuals (also 504 in total), or 2041 East Asian UKBB individuals (including the 400 previous Japanese individuals).
 For the small LD references (based on \textasciitilde 500 individuals), we restrict to variants with a MAF > 0.02.
 For the one based on 2041 individuals, we restrict to MAF > 0.01.
 We also construct versions of these LD references with independent LD blocks, as described in the previous section.
+{\color{red}2527, 1769, and 2196 independent LD blocks are identified for these three LD references, respectively.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
