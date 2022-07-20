@@ -17,9 +17,10 @@ ind.val <- ukb$fam$id_csv
 covar <- as.matrix(df0[ind.val, -1])
 
 ALL_METHODS <- c("lassosum2", "LDpred2", "LDpred2-low-h2",
-                 "LDpred2-auto", "LDpred2-auto-rob")
+                 "LDpred2-auto", "LDpred2-auto-rob", "PRS-CS-auto")
 
 bigassertr::assert_dir("results-final")
+bigassertr::assert_dir("results-final/sumstats")
 
 library(dplyr)
 grid <- tibble::tribble(
@@ -38,8 +39,10 @@ grid <- tibble::tribble(
     qc = c("noqc", "qc1", "qc2"),
     name_corr = c("data/corr/chr", "data/corr/adj_with_blocks_chr"),
     method = ALL_METHODS) %>%
+  mutate(name_corr = ifelse(method == "PRS-CS-auto", NA_character_, name_corr)) %>%
+  unique() %>%
   print()
-# 480 different PGS models
+# 528 different PGS models
 
 
 library(future.apply)
@@ -53,43 +56,51 @@ grid$effects <- furrr::future_pmap(grid[1:7], function(
   # qc <- "qc1"
   # use_info <- TRUE
   # name_corr <- "data/corr/adj_with_blocks_chr"
-  # method <- "lassosum2"
-
+  # method <- "PRS-CS-auto"
 
   basename <- paste0(pheno, "_", qc)
   sumstats_file <- paste0("data/sumstats/", basename, ".rds")
 
-  suffix_N <- `if`(is.na(whichN), "", paste0("_", whichN))
-  basename <- paste0("results/", basename, suffix_N)
-  if (grepl("blocks", name_corr, fixed = TRUE))
-    basename <- paste0(basename, "_adj_with_blocks")
+  if (method != "PRS-CS-auto") {
 
-  res_file <- paste0(basename, "_", method, ".rds")
-  if (!file.exists(res_file)) {
-    print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
-    return(rep(NA, ncol(G)))
+    suffix_N <- `if`(is.na(whichN), "", paste0("_", whichN))
+    basename <- paste0("results/sumstats/", basename, suffix_N)
+    if (grepl("blocks", name_corr, fixed = TRUE))
+      basename <- paste0(basename, "_adj_with_blocks")
+
+    res_file <- paste0(basename, "_", method, ".rds")
+    if (!file.exists(res_file)) {
+      print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
+      return(rep(NA, ncol(G)))
+    }
+    res <- readRDS(res_file)
+  } else {
+    res_files <- paste0("results_prscs/sumstats/", pheno, "_", qc, "_chr", 1:22, ".rds")
+    for (res_file in res_files) {
+      if (!file.exists(res_file)) {
+        print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
+        return(rep(NA, ncol(G)))
+      }
+    }
+    res <- unlist(lapply(res_files, function(res_file) readRDS(res_file)$V6))
   }
 
-  res_file2 <- paste0("results-final/", basename(basename), "_", method,
+  res_file2 <- paste0("results-final/sumstats/", basename(basename), "_", method,
                       `if`(use_info, "_info", ""), ".rds")
 
   runonce::save_run({
-
-    res <- readRDS(res_file)
-    prs_effects <- rep(0, ncol(G))
 
     num_id <- readRDS(sumstats_file)[["_NUM_ID_"]]
     sqrt_info <- `if`(use_info, sqrt(readRDS(sumstats_file)[["info"]]), rep(1, length(num_id)))
     if (pheno == "vitaminD") sqrt_info <- -sqrt_info
 
+    prs_effects <- rep(0, ncol(G))
     prs_effects[num_id] <- if (grepl("LDpred2-auto", method, fixed = TRUE)) {
-      all_h2 <- sapply(res, function(auto) auto$h2_est)
-      h2 <- median(all_h2)
-      keep <- between(all_h2, 0.7 * h2, 1.4 * h2)
-      all_p <- sapply(res, function(auto) auto$p_est)
-      p <- median(all_p[keep])
-      keep <- keep & between(all_p, 0.5 * p, 2 * p)
+      range <- sapply(res, function(auto) diff(range(auto$corr_est)))
+      keep <- (range > (0.9 * quantile(range, 0.9)))
       rowMeans(sapply(res[keep], function(auto) auto$beta_est)) * sqrt_info
+    } else if (method == "PRS-CS-auto") {
+      res * sqrt_info
     } else {
       y <- readRDS("data/all_phecodes.rds")[[phecode]]
       nona <- which(!is.na(y[ind.val]) & complete.cases(covar))
@@ -139,13 +150,14 @@ grid$pcor <- furrr::future_pmap(grid[c("phecode", "pred")], function(phecode, pr
 plan("sequential")
 
 all_res0 <- grid %>%
-  mutate(use_blocks = grepl("with_blocks", name_corr),
+  mutate(use_blocks = method == "PRS-CS-auto" | grepl("with_blocks", name_corr),
          method = factor(method, levels = ALL_METHODS)) %>%
   select(-effects, -pred, -phecode, -name_corr) %>%
   tidyr::unnest_wider("pcor", names_sep = "_") %>%
   mutate(across(starts_with("pcor_"), function(x) sign(x) * x^2)) %>%
+  filter(method != "PRS-CS-auto" | whichN %in% c(NA, "maxN")) %>%
   print()
-# saveRDS(all_res0, "results-final/all_res.rds")
+# saveRDS(all_res0, "results-final/sumstats/all_res.rds")
 
 
 for (PHENO in setdiff(unique(all_res0$pheno), "vitaminD")) {
@@ -154,7 +166,7 @@ for (PHENO in setdiff(unique(all_res0$pheno), "vitaminD")) {
     mutate(use_info = ifelse(use_info, "Yes", "No"))
 
   library(ggplot2)
-  ggplot(filter(all_res, !use_blocks),
+  ggplot(filter(all_res, method == "PRS-CS-auto" | !use_blocks),
          aes(method, pcor_1, fill = paste(qc, use_info, sep = " - "))) +
     facet_wrap(~ pheno, ncol = 1) +
     bigstatsr::theme_bigstatsr(0.9) +
@@ -180,7 +192,7 @@ PHENO <- "vitaminD"
 all_res <- filter(all_res0, grepl(PHENO, pheno))
 
 library(ggplot2)
-ggplot(filter(all_res, !use_blocks),
+ggplot(filter(all_res, method == "PRS-CS-auto" | !use_blocks),
        aes(method, pcor_1, fill = paste(qc, whichN, sep = " - "))) +
   facet_wrap(~ pheno, ncol = 1) +
   bigstatsr::theme_bigstatsr(0.9) +

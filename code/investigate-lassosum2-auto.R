@@ -60,13 +60,13 @@ params$auto_score2 <- apply(beta_lassosum, 2, function(beta) {
 plot_grid(
   qplot(auto_score, score, color = as.factor(delta), data = params) +
     theme_bw(15) +
-    geom_abline(linetype = 2, color = "red") +
+    geom_abline(linetype = 2, color = "grey") +
     labs(x = "Score from pseudo-validation (using correlations)",
          y = "Score from validation", color = expression(delta)) +
     theme(legend.position = c(0.15, 0.7)),
   qplot(auto_score2, score, color = as.factor(delta), data = params) +
     theme_bw(15) +
-    geom_abline(linetype = 2, color = "red") +
+    geom_abline(linetype = 2, color = "grey") +
     labs(x = "Score from pseudo-validation (using p-values)",
          y = "Score from validation", color = expression(delta)) +
     theme(legend.position = c(0.8, 0.3)),

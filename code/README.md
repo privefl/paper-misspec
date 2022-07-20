@@ -2,19 +2,19 @@
 
 ### Prepare data
 
-- `prepare-genotypes-simu-chr22.R`: Prepare genotypes for simulations using chromosome 22 + figure S4
+- `prepare-genotypes-simu-chr22.R`: Prepare genotypes for simulations using chromosome 22 + figure S1
 
-- `prepare-corr-simu-chr22.R`: Prepare the LD reference used in simulations
+- `prepare-corr-simu-chr22.R`: Prepare the LD reference used in simulations + figure S3
 
-- `prepare-corr-altpop.R`: Prepare the "alternative" LD reference used in simulations
+- `prepare-corr-simu-altpop.R`: Prepare the "alternative" LD reference used in simulations
 
 - `prepare-genotypes.R`: Prepare genotypes for real data applications
 
-- `prepare-corr.R` + `prepare-corr-with-blocks.R`: Prepare the main LD reference used in real data analyses
+- `prepare-corr.R`: Prepare the main LD reference used in real data analyses
 
 - `prepare-phecodes.R`: Prepare phecodes (+ a few continuous traits) for real data analyses in the UK Biobank
 
-- `prepare-sumstats/*`: prepare GWAS summary statistics for the main real data analyses + figures 4 & S12-S14 & S16-S21 & S28-S29
+- `prepare-sumstats/*`: prepare GWAS summary statistics for the main real data analyses + figures 4 & S17-S20 & S23-S27 & S33-S34
 
 - `prepare-sumstats-finngen/*` + `prepare-sumstats-bbj/*`: prepare GWAS summary statistics from FinnGen and Biobank Japan
 
@@ -31,36 +31,38 @@
 
 - `run-methods.R`: code to run all methods in simulations
 
-- `simu-misspec-N.R`: figure 1
+- `simu-misspec-N.R`: figures 1 & S6-S7
 
-- `investigate-misspec-N.R`: figures S1-S3
+- `investigate-misspec-N.R`: figures S4-S5 & S35
 
-- `simu-dosage-info.R`: figure 2
+- `simu-dosage-info.R`: figure 2 & S14
 
-- `simu-altpop.R`: figure 3
+- `simu-altpop.R`: figure 3 & S15-S16
 
-- `simu-rounded.R`: figure S11 (an example of such real GWAS summary statistics is given in `investigate-T2D-rounded.R`)
+- `simu-rounded.R`: figure S39 (an example of such real GWAS summary statistics is given in `investigate-T2D-rounded.R`)
 
-- `investigate-GWAS-from-imputed.R`: figures S5-S9
+- `investigate-GWAS-from-imputed.R`: figures S8-S12
 
-- `investigate-PCwithLD-GWAS.R`: figure S15
+- `investigate-PCwithLD-GWAS.R`: figure S21
 
-- `investigate-lassosum2-auto.R`: figure S31
+- `investigate-lassosum2-auto.R`: figure S2
 
-- `investigate-corr-imp.R`: figure S32
+- `investigate-corr-imp.R`: figure S38
 
 
 ### Real data results
 
-- `run-PRS.R` + `process-PRS.R`: run all main real data analyses + figures 5-6 & S22-S27
+- `run-PRS.R` + `process-PRS.R`: run all main real data analyses + figures 5-6 & S22 & S28-S32
+
+- `investigate-CAD.R`: figure S36
 
 - `run-PRS-FIN.R` + `process-PRS-FIN.R`: run real data analyses using FinnGen GWAS summary statistics + figure 7
 
-- `run-PRS-BBJ.R` + `process-PRS-BBJ.R`: run real data analyses using Biobank Japan GWAS summary statistics + figure S30
+- `run-PRS-BBJ.R` + `process-PRS-BBJ.R`: run real data analyses using Biobank Japan GWAS summary statistics + figure S37
 
 
 ### Export data
 
 - `prepare-ldref-with-blocks.R`: Add blocks to LD reference matrices provided in the LDpred2 paper
 
-- `compute-all-info-eur.R`: Recompute INFO scores (and MAF) for the NW European subset in the UK Biobank + figure S10
+- `compute-all-info-eur.R`: Recompute INFO scores (and MAF) for the NW European subset in the UK Biobank + figure S13

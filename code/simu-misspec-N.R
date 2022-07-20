@@ -3,31 +3,19 @@ library(bigsnpr)
 ukb <- snp_attach("data/ukbb4simu.rds")
 G <- ukb$genotypes
 
-load("data/ukbb4simu_ind.RData")
 
-# prepare data in bed format
-data <- snp_fake(n = nrow(G), m = 1)
-data$map <- ukb$map
-data$map$genetic.dist <- snp_asGeneticPos(as.integer(ukb$map$chromosome),
-                                          ukb$map$physical.pos, dir = "tmp-data")
-data$map$marker.ID <- paste0("SNP", rows_along(data$map))
-data$genotypes <- G
-# snp_writeBed(data, ind.row = ind.val, bedfile = "tmp-data/simu_chr22.bed")
-
+NCORES <- 14
 library(future.batchtools)
-NCORES <- 15
 plan(batchtools_slurm(resources = list(
-  t = "12:00:00", c = NCORES + 1, mem = "100g",
+  t = "12:00:00", c = NCORES + 2, mem = "100g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
 bigassertr::assert_dir("results-simu-misN")
 bigassertr::assert_dir("log")
 
+res_files <- paste0("results-simu-misN/res_", 1:20, ".rds")
 
-furrr::future_walk(1:10, function(ic) {
-
-  res_file <- paste0("results-simu-misN/res_", ic, ".rds")
-  if (file.exists(res_file)) return(NULL)
+furrr::future_walk(which(!file.exists(res_files)), function(ic) {
 
   #### Run GWAS and prepare sumstats ####
 
@@ -37,7 +25,7 @@ furrr::future_walk(1:10, function(ic) {
                    sort(sample(ind.gwas, length(ind.gwas) * 0.8)),
                    sort(sample(ind.gwas, length(ind.gwas) * 0.6)))
 
-  y <- snp_simuPheno(G, h2 = 0.2, M = 2000, ncores = NCORES)$pheno
+  y <- snp_simuPheno(G, h2 = `if`(ic > 10, 0.04, 0.2), M = 2000, ncores = NCORES)$pheno
 
   # GWAS to get sumstats
   gwas_set <- sample(rep_len(c(1, 1, 2, 3), ncol(G)))
@@ -71,24 +59,35 @@ furrr::future_walk(1:10, function(ic) {
 
   source("code/run-methods.R", local = TRUE)
 
-  data <- data
+  ukb <- ukb
 
   # Correlation matrices made in 'code/prepare-corr-simu-chr22.R'
-  corr0 <- readRDS("tmp-data/corr0_simu_val.rds")
   corr1 <- readRDS("tmp-data/corr_simu_val.rds")
   corr2 <- readRDS("tmp-data/corr_simu_val_with_blocks.rds")
-  dim(corr0)  # 40000 x 40000
+  corr3 <- readRDS("tmp-data/for_gctb_simu.rds")
+  corr4 <- readRDS("tmp-data/for_gctb_simu_with_blocks.rds")
+
+  # run_lassosum(df_beta)
+  # run_CT(df_beta)
+  # run_prscs(df_beta)
+  # run_ldpred2(df_beta, corr3)
+  # run_sbayesr(df_beta, corr2)
+  # run_sbayesr(df_beta, "tmp-data/for_gctb_simu.ldm.sparse")
+  # run_ldpred2(df_beta, corr4)
+  # run_sbayesr(df_beta, corr4)
 
   ALL_N <- c("true", "max", "imputed")
   ALL_LDPRED <- c("LDpred2-inf", "LDpred2", "LDpred2-low-h2",
                   "LDpred2-auto", "LDpred2-auto-rob")
 
   all_comb <- tibble::tribble(
-    ~ Method,    ~ which_N,  ~ fun,         ~ corr,
-    ALL_LDPRED,  ALL_N,      run_ldpred2,   list(corr1, corr2),
-    "lassosum2", ALL_N,      run_lassosum2, list(corr1, corr2),
-    "lassosum",  ALL_N,      run_lassosum,  list(NULL),
-    "C+T",       "any",      run_CT,        list(NULL),
+    ~ Method,      ~ which_N,  ~ fun,         ~ corr,
+    "SBayesR",     ALL_N,      run_sbayesr,   list(corr1, corr2, corr3, corr4),
+    ALL_LDPRED,    ALL_N,      run_ldpred2,   list(corr1, corr2, corr3, corr4),
+    "lassosum2",   ALL_N,      run_lassosum2, list(corr1, corr2, corr3, corr4),
+    "lassosum",    ALL_N,      run_lassosum,  list(NULL),
+    "C+T",         "any",      run_CT,        list(NULL),
+    "PRS-CS-auto", "max",      run_prscs,     list(NULL),
   ) %>%
     tidyr::unnest(which_N) %>%
     tidyr::unnest(corr)
@@ -100,78 +99,48 @@ furrr::future_walk(1:10, function(ic) {
     print(do.call(fun, args))
   })
 
-  saveRDS(select(all_comb, -fun), res_file)
+  saveRDS(select(all_comb, -fun), res_files[ic])
 })
 
 
+ALL_METHODS <- c("C+T", "lassosum", "lassosum2", "LDpred2", "LDpred2-low-h2",
+                 "LDpred2-auto", "LDpred2-auto-rob", "LDpred2-inf", "SBayesR", "PRS-CS-auto")
+
 library(dplyr)
 all_res <- list.files("results-simu-misN", full.names = TRUE) %>%
-  purrr::map_dfr(readRDS) %>%
+  purrr::map_dfr(~ {
+    res <- readRDS(.)
+    ic <- as.integer(sub(".*res_([0-9]+)\\.rds$", "\\1", .))
+    bind_cols(res, h2 = `if`(ic > 10, 0.04, 0.2))
+  }) %>%
   rowwise() %>%
-  mutate(corr = ifelse(is.null(corr), "none",
-                       ifelse(grepl("with_blocks", corr$sbk), "with blocks", "normal"))) %>%
+  mutate(
+    use_blocks = identical(Method, "lassosum") || identical(Method, "PRS-CS-auto") ||
+      (!is.null(corr) && grepl("with_blocks", corr$sbk)),
+    is_shrunk = !is.null(corr) && grepl("for_gctb", corr$sbk)) %>%
   ungroup() %>%
   tidyr::unnest(c(Method, r2)) %>%
-  group_by(Method, which_N, corr) %>%
+  group_by(Method, which_N, use_blocks, is_shrunk, h2) %>%
   summarise(r2 = {
     cat(".")
     boot <- replicate(1e4, mean(sample(r2, replace = TRUE)))
     q <- quantile(boot, c(0.025, 0.975))
     list(c(mean = mean(r2), inf = q[[1]], sup = q[[2]]))
-  }, .groups = "drop") %>%
+  }, N = n(), .groups = "drop") %>%
   tidyr::unnest_wider("r2") %>%
-  mutate(which_N = factor(which_N, levels = c("any", "true", "max", "imputed"))) %>%
+  mutate(which_N = factor(which_N, levels = c("any", "true", "max", "imputed")),
+         Method  = factor(Method, levels = ALL_METHODS)) %>%
   print(n = Inf)
-#    Method           which_N corr         mean   inf   sup
-#  1 C+T              any     none        0.123 0.121  0.125
-#  2 lassosum         imputed none        0.161 0.159  0.163
-#  3 lassosum         max     none        0.157 0.155  0.160
-#  4 lassosum         true    none        0.161 0.159  0.163
-#  5 lassosum2        imputed normal      0.169 0.167  0.170
-#  6 lassosum2        imputed with blocks 0.170 0.168  0.172
-#  7 lassosum2        max     normal      0.163 0.159  0.166
-#  8 lassosum2        max     with blocks 0.164 0.160  0.167
-#  9 lassosum2        true    normal      0.169 0.167  0.170
-# 10 lassosum2        true    with blocks 0.170 0.168  0.172
-# 11 LDpred2          imputed normal      0.159 0.157  0.161
-# 12 LDpred2          imputed with blocks 0.163 0.161  0.165
-# 13 LDpred2          max     normal      0.134 0.130  0.137
-# 14 LDpred2          max     with blocks 0.136 0.132  0.140
-# 15 LDpred2          true    normal      0.159 0.157  0.161
-# 16 LDpred2          true    with blocks 0.163 0.161  0.165
-# 17 LDpred2-auto     imputed normal      0.140 0.138  0.142
-# 18 LDpred2-auto     imputed with blocks 0.143 0.141  0.145
-# 19 LDpred2-auto     max     normal      0.119 0.111  0.124
-# 20 LDpred2-auto     max     with blocks 0.120 0.111  0.126
-# 21 LDpred2-auto     true    normal      0.140 0.138  0.142
-# 22 LDpred2-auto     true    with blocks 0.143 0.142  0.145
-# 23 LDpred2-auto-rob imputed normal      0.151 0.149  0.154
-# 24 LDpred2-auto-rob imputed with blocks 0.165 0.163  0.167
-# 25 LDpred2-auto-rob max     normal      0.109 0.0932 0.120
-# 26 LDpred2-auto-rob max     with blocks 0.111 0.0925 0.125
-# 27 LDpred2-auto-rob true    normal      0.152 0.150  0.154
-# 28 LDpred2-auto-rob true    with blocks 0.165 0.163  0.167
-# 29 LDpred2-inf      imputed normal      0.141 0.139  0.143
-# 30 LDpred2-inf      imputed with blocks 0.144 0.142  0.145
-# 31 LDpred2-inf      max     normal      0.123 0.117  0.127
-# 32 LDpred2-inf      max     with blocks 0.126 0.120  0.130
-# 33 LDpred2-inf      true    normal      0.141 0.139  0.143
-# 34 LDpred2-inf      true    with blocks 0.144 0.142  0.146
-# 35 LDpred2-low-h2   imputed normal      0.169 0.167  0.171
-# 36 LDpred2-low-h2   imputed with blocks 0.172 0.170  0.174
-# 37 LDpred2-low-h2   max     normal      0.163 0.159  0.166
-# 38 LDpred2-low-h2   max     with blocks 0.163 0.160  0.166
-# 39 LDpred2-low-h2   true    normal      0.169 0.167  0.171
-# 40 LDpred2-low-h2   true    with blocks 0.172 0.171  0.174
-ALL_METHODS <- c("C+T", "lassosum", "lassosum2", "LDpred2", "LDpred2-low-h2",
-                 "LDpred2-auto", "LDpred2-auto-rob", "LDpred2-inf")
+
+table(all_res$N)
+
+all_res2 <- filter(all_res, !is_shrunk & h2 == 0.2)
 
 library(ggplot2)
-ggplot(all_res %>% filter(corr != "with blocks") %>%
-         mutate(Method = factor(Method, levels = ALL_METHODS)),
+ggplot(filter(all_res2, !use_blocks | Method %in% c("PRS-CS-auto", "lassosum")),
        aes(Method, mean, fill = which_N)) +
   bigstatsr::theme_bigstatsr(0.8) +
-  scale_fill_manual(values =  c(any = "#999999", "#E69F00", "#56B4E9", "#009E73")) +
+  scale_fill_manual(values =  c(any = "#999999", true = "#E69F00", max = "#56B4E9", imputed = "#009E73")) +
   geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
   geom_errorbar(aes(ymin = inf, ymax = sup),
                 position = position_dodge(width = 0.9),
@@ -181,7 +150,41 @@ ggplot(all_res %>% filter(corr != "with blocks") %>%
   labs(x = "Method", y = "Mean squared correlation between PGS and phenotype",
        fill = "Sample size") +
   theme(legend.position = "top") +
-  geom_col(data = filter(all_res, corr == "with blocks"),
-           position = position_dodge(), color = "red",
-           alpha = 0, show.legend = FALSE)
-# ggsave("figures/simu-misN.pdf", width = 11, height = 6)
+  geom_col(data = filter(all_res2, use_blocks), position = position_dodge(),
+           color = "red", alpha = 0, show.legend = FALSE)
+# ggsave("figures/simu-misN.pdf", width = 13, height = 7)
+
+all_res4 <- filter(all_res, !is_shrunk & h2 == 0.04)
+ggplot(filter(all_res4, !use_blocks | Method %in% c("PRS-CS-auto", "lassosum")),
+       aes(Method, mean, fill = which_N)) +
+  bigstatsr::theme_bigstatsr(0.8) +
+  scale_fill_manual(values =  c(any = "#999999", true = "#E69F00", max = "#56B4E9", imputed = "#009E73")) +
+  geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
+  geom_errorbar(aes(ymin = inf, ymax = sup),
+                position = position_dodge(width = 0.9),
+                color = "black", width = 0.2, size = 1) +
+  scale_y_continuous(breaks = seq(0, 0.2, by = 0.005), minor_breaks = seq(0, 0.2, by = 0.001)) +
+  labs(x = "Method", y = "Mean squared correlation between PGS and phenotype",
+       fill = "Sample size") +
+  theme(legend.position = "top") +
+  geom_col(data = filter(all_res4, use_blocks), position = position_dodge(),
+           color = "red", alpha = 0, show.legend = FALSE)
+# ggsave("figures/simu-misN-smallh2.pdf", width = 13, height = 7)
+
+
+all_res3 <- filter(all_res, grepl("SBayesR|LDpred2|lassosum2", Method))
+ggplot(filter(all_res3, !use_blocks),
+       aes(which_N, mean, fill = ifelse(is_shrunk, "Yes", "No"))) +
+  bigstatsr::theme_bigstatsr(0.8) +
+  scale_fill_manual(values =  c("#CC79A7", "#0072B2")) +
+  geom_col(position = position_dodge(), alpha = 0.6, color = "black", size = 1) +
+  geom_errorbar(aes(ymin = inf, ymax = sup),
+                position = position_dodge(width = 0.9),
+                color = "black", width = 0.2, size = 1) +
+  labs(x = "Sample size", y = "Mean squared correlation between PGS and phenotype",
+       fill = "Shrunk LD matrix?") +
+  theme(legend.position = "top") +
+  facet_grid(h2 ~ Method, scales = "free_y") +
+  geom_col(data = filter(all_res3, use_blocks), position = position_dodge(),
+           color = "red", alpha = 0, show.legend = FALSE)
+# ggsave("figures/simu-misN-shrunk.pdf", width = 13, height = 7)

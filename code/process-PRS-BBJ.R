@@ -18,7 +18,7 @@ ind.val <- which(ukb$fam$set == "val")
 covar.val <- as.matrix(df0[id_csv[ind.val], -1])
 
 ALL_METHODS <- c("lassosum2", "LDpred2", "LDpred2-low-h2",
-                 "LDpred2-auto", "LDpred2-auto-rob")
+                 "LDpred2-auto", "LDpred2-auto-rob", "PRS-CS-auto")
 
 ALL_CORR <- c(
   corr_JPN               = "data/corr_JPN/chr",
@@ -29,7 +29,7 @@ ALL_CORR <- c(
   corr_UKBB_with_blocks  = "data/corr_UKBB_EAS/adj_with_blocks_chr"
 )
 
-bigassertr::assert_dir("results-final_BBJ")
+bigassertr::assert_dir("results-final/sumstats_BBJ")
 
 library(dplyr)
 grid <- tibble(pheno = c("height", "systolic_bp", "hdl_cholesterol", "bmi")) %>%
@@ -46,31 +46,41 @@ grid$effects <- furrr::future_pmap(grid[1:3], function(pheno, name_corr, method)
   # name_corr <- "corr_1000G"
   # method <- "lassosum2"
 
-  res_file <- paste0("results_BBJ/", pheno, "_", name_corr, "_", method, ".rds")
-  if (!file.exists(res_file)) {
-    print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
-    return(rep(NA, ncol(G)))
+  if (method != "PRS-CS-auto") {
+    res_file <- paste0("results/sumstats_BBJ/", pheno, "_", name_corr, "_", method, ".rds")
+    if (!file.exists(res_file)) {
+      print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
+      return(rep(NA, ncol(G)))
+    }
+    res <- readRDS(res_file)
+  } else {
+    res_files <- paste0("results_prscs/sumstats_BBJ/", pheno, "_",
+                        sub("_with_blocks", "", name_corr), "_chr", 1:22, ".rds")
+    for (res_file in res_files) {
+      if (!file.exists(res_file)) {
+        print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
+        return(rep(NA, ncol(G)))
+      }
+    }
+    res <- unlist(lapply(res_files, function(res_file) readRDS(res_file)$V6))
   }
 
-  res_file2 <- paste0("results-final_BBJ/", basename(res_file))
+  res_file2 <- paste0("results-final/sumstats_BBJ/", basename(res_file))
 
   runonce::save_run({
 
-    res <- readRDS(res_file)
-    prs_effects <- rep(0, ncol(G))
-
+    grp <- readRDS(file.path(dirname(ALL_CORR[[name_corr]]), "all_final_grp.rds"))
     num_id <- readRDS(paste0("data/sumstats_BBJ/", pheno, ".rds"))[["_NUM_ID_"]]
+    if ("ind" %in% names(grp))
+      num_id <- intersect(num_id, unlist(grp$ind))
 
+    prs_effects <- rep(0, ncol(G))
     prs_effects[num_id] <- if (grepl("LDpred2-auto", method, fixed = TRUE)) {
-      all_h2 <- sapply(res, function(auto) auto$h2_est)
-      h2 <- median(all_h2)
-      keep <- between(all_h2, 0.7 * h2, 1.4 * h2)
-      all_p <- sapply(res, function(auto) auto$p_est)
-      p <- median(all_p[keep])
-      keep <- keep & between(all_p, 0.5 * p, 2 * p)
-      if (sum(keep) > 0) {
-        rowMeans(as.matrix(sapply(res[keep], function(auto) auto$beta_est)))
-      } else rep(0, length(num_id))
+      range <- sapply(res, function(auto) diff(range(auto$corr_est)))
+      keep <- (range > (0.9 * quantile(range, 0.9)))
+      rowMeans(as.matrix(sapply(res[keep], function(auto) auto$beta_est)))
+    } else if (method == "PRS-CS-auto") {
+      res
     } else {
       y <- readRDS("data/all_phecodes.rds")[id_csv, pheno]
       nona <- which(!is.na(y[ind.val]) & complete.cases(covar.val))
@@ -137,7 +147,7 @@ all_res0 <- grid %>%
   tidyr::unnest_wider("pcor", names_sep = "_") %>%
   mutate(across(starts_with("pcor_"), function(x) sign(x) * x^2)) %>%
   print()
-# saveRDS(all_res0, "results-final_BBJ/all_res.rds")
+# saveRDS(all_res0, "results-final/sumstats_BBJ/all_res.rds")
 
 
 library(ggplot2)
@@ -154,10 +164,11 @@ ggplot(filter(all_res0, !use_blocks),
   labs(x = "Method", y = "Partial phenotypic variance explained by PGS",
        fill = "LD reference population") +
   theme(legend.position = "top",
+        axis.text.x = element_text(angle = 18, hjust = 0.7, vjust = 0.9),
         legend.text = element_text(margin = margin(r = 10, unit = "pt")),
         legend.title = element_text(margin = margin(r = 10, unit = "pt"))) +
   geom_col(data = filter(all_res0, use_blocks),
            position = position_dodge(), color = "red",
            alpha = 0, show.legend = FALSE)
 
-# ggsave("figures/res-BBJ.pdf", width = 14, height = 10)
+# ggsave("figures/res-BBJ.pdf", width = 15, height = 9)

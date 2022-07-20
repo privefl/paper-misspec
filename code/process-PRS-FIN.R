@@ -17,7 +17,7 @@ ind.val <- ukb$fam$id_csv
 covar <- as.matrix(df0[ind.val, -1])
 
 ALL_METHODS <- c("lassosum2", "LDpred2", "LDpred2-low-h2",
-                 "LDpred2-auto", "LDpred2-auto-rob")
+                 "LDpred2-auto", "LDpred2-auto-rob", "PRS-CS-auto")
 ALL_CORR <- c(
   corr_UK             = "data/corr/chr",
   corr_UK_with_blocks = "data/corr/adj_with_blocks_chr",
@@ -27,7 +27,7 @@ ALL_CORR <- c(
   corr_1000G_with_blocks = "data/corr_1000G_EUR/adj_with_blocks_chr"
 )
 
-bigassertr::assert_dir("results-final_FIN")
+bigassertr::assert_dir("results-final/sumstats_FIN")
 
 library(dplyr)
 grid <- tibble::tribble(
@@ -50,33 +50,43 @@ grid$effects <- furrr::future_pmap(grid[1:4], function(pheno, phecode, name_corr
   # pheno <- "t2d"
   # phecode <- "250.2"
   # name_corr <- "corr_1000G"
-  # method <- "lassosum2"
+  # method <- "PRS-CS-auto"
 
-  res_file <- paste0("results_FIN/", pheno, "_", name_corr, "_", method, ".rds")
-  if (!file.exists(res_file)) {
-    print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
-    return(rep(NA, ncol(G)))
+  if (method != "PRS-CS-auto") {
+    res_file <- paste0("results/sumstats_FIN/", pheno, "_", name_corr, "_", method, ".rds")
+    if (!file.exists(res_file)) {
+      print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
+      return(rep(NA, ncol(G)))
+    }
+    res <- readRDS(res_file)
+  } else {
+    res_files <- paste0("results_prscs/sumstats_FIN/", pheno, "_",
+                        sub("_with_blocks", "", name_corr), "_chr", 1:22, ".rds")
+    for (res_file in res_files) {
+      if (!file.exists(res_file)) {
+        print(glue::glue("/!\\ '{res_file}' IS MISSING /!\\"))
+        return(rep(NA, ncol(G)))
+      }
+    }
+    res <- unlist(lapply(res_files, function(res_file) readRDS(res_file)$V6))
   }
 
-  res_file2 <- paste0("results-final_FIN/", basename(res_file))
+  res_file2 <- paste0("results-final/sumstats_FIN/", basename(res_file))
 
   runonce::save_run({
 
-    res <- readRDS(res_file)
-    prs_effects <- rep(0, ncol(G))
-
+    grp <- readRDS(file.path(dirname(ALL_CORR[[name_corr]]), "all_final_grp.rds"))
     num_id <- readRDS(paste0("data/sumstats_FIN/", pheno, ".rds"))[["_NUM_ID_"]]
+    if ("ind" %in% names(grp))
+      num_id <- intersect(num_id, unlist(grp$ind))
 
+    prs_effects <- rep(0, ncol(G))
     prs_effects[num_id] <- if (grepl("LDpred2-auto", method, fixed = TRUE)) {
-      all_h2 <- sapply(res, function(auto) auto$h2_est)
-      h2 <- median(all_h2)
-      keep <- between(all_h2, 0.7 * h2, 1.4 * h2)
-      all_p <- sapply(res, function(auto) auto$p_est)
-      p <- median(all_p[keep])
-      keep <- keep & between(all_p, 0.5 * p, 2 * p)
-      if (sum(keep) > 0) {
-        rowMeans(as.matrix(sapply(res[keep], function(auto) auto$beta_est)))
-      } else rep(0, length(num_id))
+      range <- sapply(res, function(auto) diff(range(auto$corr_est)))
+      keep <- (range > (0.9 * quantile(range, 0.9)))
+      rowMeans(as.matrix(sapply(res[keep], function(auto) auto$beta_est)))
+    } else if (method == "PRS-CS-auto") {
+      res
     } else {
       y <- readRDS("data/all_phecodes.rds")[[phecode]]
       nona <- which(!is.na(y[ind.val]) & complete.cases(covar))
@@ -150,7 +160,7 @@ all_res0 <- grid %>%
   tidyr::unnest_wider("pcor", names_sep = "_") %>%
   mutate(across(starts_with("pcor_"), function(x) sign(x) * x^2)) %>%
   print()
-# saveRDS(all_res0, "results-final_FIN/all_res.rds")
+# saveRDS(all_res0, "results-final/sumstats_FIN/all_res.rds")
 
 
 
@@ -172,4 +182,4 @@ ggplot(filter(all_res0, !use_blocks),
            position = position_dodge(), color = "red",
            alpha = 0, show.legend = FALSE)
 
-# ggsave("figures/res-FIN.pdf", width = 14, height = 11)
+# ggsave("figures/res-FIN.pdf", width = 16, height = 9)

@@ -69,12 +69,6 @@ abline(0, 1, col = "red", lwd = 3)
 
 #### Run lassosum2 and LDpred2-grid with different parameters ####
 
-library(future.batchtools)
-NCORES <- 15
-plan(batchtools_slurm(resources = list(
-  t = "12:00:00", c = NCORES + 1, mem = "100g",
-  name = basename(rstudioapi::getSourceEditorContext()$path))))
-
 bigassertr::assert_dir("investigate")
 
 grid <- tidyr::expand_grid(
@@ -83,7 +77,9 @@ grid <- tidyr::expand_grid(
   corr_num = 1:2
 )
 
-grid$res <- furrr::future_pmap(grid, function(method, whichN, corr_num) {
+grid$res <- purrr::pmap(grid, function(method, whichN, corr_num) {
+
+  cat(".")
 
   df <- list(maxN = df_beta2, imputeN = df_beta3)[[whichN]]
   corr <- list(corr1, corr2)[[corr_num]]
@@ -124,35 +120,33 @@ grid$res <- furrr::future_pmap(grid, function(method, whichN, corr_num) {
 
 
 filter(grid, method == "lassosum2") %>%
-  mutate(corr = c("normal", "with_indep_ld")[corr_num]) %>%
+  mutate(corr = c("normal", "with LD blocks")[corr_num]) %>%
   tidyr::unnest(res) %>%
   ggplot(aes(x = lambda, y = r2, color = paste(corr, whichN, sep = " - "))) +
   facet_wrap(~ delta, labeller = label_bquote(cols = delta: .(delta))) +
-  theme_bigstatsr(0.8) +
+  theme_bigstatsr(0.7) +
   geom_point(size = 2) +
-  geom_line(size = 1, alpha = 0.8) +
+  geom_line(size = 1, alpha = 0.5) +
   scale_x_log10(breaks = 10^(-5:0)) +
   scale_color_manual(values = c("#56B4E9", "#999999", "#009E73", "#E69F00")) +
   labs(x = expression(lambda), y = expression(r^2), color = "LD - N") +
   theme(legend.position = "top", legend.key.width = unit(2, "line"))
-
-# ggsave("figures/lassosum2-misN.pdf", width = 10, height = 6)
+# ggsave("figures/lassosum2-misN.pdf", width = 9, height = 6)
 
 
 filter(grid, method == "ldpred2") %>%
-  mutate(corr = c("normal", "with_indep_ld")[corr_num]) %>%
+  mutate(corr = c("normal", "with LD blocks")[corr_num]) %>%
   tidyr::unnest(res) %>%
   ggplot(aes(x = p, y = r2, color = paste(corr, whichN, sep = " - "))) +
   facet_wrap(~ h2, labeller = label_bquote(cols = h^2: .(h2))) +
-  theme_bigstatsr(0.8) +
+  theme_bigstatsr(0.75) +
   geom_point(size = 2) +
-  geom_line(size = 1, alpha = 0.8) +
+  geom_line(size = 1, alpha = 0.5) +
   scale_x_log10(breaks = 10^(-5:0)) +
   scale_color_manual(values = c("#56B4E9", "#999999", "#009E73", "#E69F00")) +
   labs(y = expression(r^2), color = "LD - N") +
   theme(legend.position = "top", legend.key.width = unit(2, "line"),
         panel.spacing = unit(1, "lines"))
-
 # ggsave("figures/ldpred2-misN.pdf", width = 10, height = 6)
 
 
@@ -165,12 +159,12 @@ corr <- corr2
 
 ldpred2_auto <- snp_ldpred2_auto(corr, df_beta2, h2_init = h2_est,
                                  burn_in = 200, num_iter = 100,
-                                 allow_jump_sign = FALSE,
-                                 shrink_corr = 0.9,
+                                 allow_jump_sign = TRUE,
+                                 shrink_corr = 1,
                                  verbose = TRUE)
 
 cor(big_prodVec(G, ldpred2_auto[[1]]$beta_est, ind.row = ind.test),
-    y[ind.test])
+    y[ind.test])^2
 
 plot(ldpred2_auto[[1]]$path_p_est)
 plot(ldpred2_auto[[1]]$path_h2_est)

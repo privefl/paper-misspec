@@ -60,7 +60,7 @@ run_ldpred2 <- function(df_beta, corr) {
 run_lassosum2 <- function(df_beta, corr) {
   beta_lassosum <- snp_lassosum2(corr, df_beta, ncores = NCORES)
   pred_grid <- big_prodMat(G, beta_lassosum, ncores = NCORES)
-  score.val <- apply(pred_grid[ind.val, ], 2, cor, y = y[ind.val])
+  print(score.val <- apply(pred_grid[ind.val, ], 2, cor, y = y[ind.val]))
   pred_lassosum <- pred_grid[ind.test, which.max(score.val)]
   print(cor(pred_lassosum, y[ind.test])**2)
 }
@@ -73,8 +73,8 @@ run_lassosum2 <- function(df_beta, corr) {
 
 run_CT <- function(df_beta) {
 
-  CHR <- as.integer(data$map$chromosome)
-  POS <- data$map$physical.pos
+  CHR <- as.integer(ukb$map$chromosome)
+  POS <- ukb$map$physical.pos
   all_keep <- snp_grid_clumping(G, CHR, POS, ind.row = ind.val,
                                 grid.base.size = 200,
                                 grid.thr.r2 = c(0.05, 0.2, 0.8),
@@ -114,11 +114,11 @@ run_lassosum <- function(df_beta) {
   system.time(
     out <- lassosum.pipeline(
       cor = t / sqrt(n - 2 + t^2),
-      snp = data$map$marker.ID,
-      A1 = data$map$allele1,
-      A2 = data$map$allele2,
+      snp = ukb$map$marker.ID,
+      A1 = ukb$map$allele1,
+      A2 = ukb$map$allele2,
       exclude.ambiguous = FALSE,
-      test.bfile = "tmp-data/simu_chr22",
+      test.bfile = "tmp-data/for_gctb_simu",
       LDblocks = "EUR.hg19",
       cluster = cl,
       destandardize = TRUE
@@ -138,113 +138,134 @@ run_lassosum <- function(df_beta) {
 
 #### Run SBayesR -> do not run because always diverged ####
 
-# gctb <- "../paper-ldpred2/tmp-data/gctb_2.02_Linux/gctb"
-#
-# # Compute LD
-# if (!file.exists(paste0("tmp-data/ldm_22.ldm.shrunk.bin"))) {
-#   system.time(
-#     system(glue::glue(
-#       "{gctb} --bfile tmp-data/simu_chr22",
-#       " --make-shrunk-ldm",
-#       " --out tmp-data/ldm_22"
-#     ))
-#   ) # 18 min
-# }
-#
-# # Compute SBayesR
-# obj.bed <- bigsnpr::bed("tmp-data/simu_chr22.bed")
-# af <- bigsnpr::bed_MAF(obj.bed, ncores = NCORES)$af
-#
-# tmp <- tempfile(tmpdir = "tmp-data", fileext = ".ma")
-# library(dplyr)
-# df_beta %>%
-#   bind_cols(data$map) %>%
-#   transmute(SNP = rsid, A1 = allele1, A2 = allele2, freq = af,
-#             b = beta, se = beta_se, p = 10^-lpval, N = n_eff) %>%
-#   bigreadr::fwrite2(tmp, sep = " ") %>%
-#   readLines(n = 5) %>%
-#   writeLines()
-#
-# res_file <- "tmp-data/sbayesr_chr22"
-#
-# system(glue::glue(
-#   gctb,
-#   " --ldm tmp-data/ldm_{chr}.ldm.shrunk",
-#   " --sbayes R --pi 0.95,0.02,0.02,0.01 --gamma 0.0,0.01,0.1,1",
-#   # " --sbayes R --pi 0.9,0.1 --gamma 0.0,0.1",
-#   # " --p-value 0.4 --rsq 0.95",
-#   " --gwas-summary {tmp}",
-#   " --chain-length 10000 --burn-in 2000",
-#   " --out {res_file} --out-freq 100"
-# ))
-#
-# file.remove(tmp)
-#
-# library(dplyr)
-# head(res_sbayesr <- bigreadr::fread2(paste0(res_file, ".snpRes")))
-#
-# ind <- match(res_sbayesr$Name, data$map$rsid)
-# stopifnot(!anyNA(ind))
-# stopifnot(all.equal(data$map$allele1[ind], res_sbayesr$A1))
-# stopifnot(all.equal(data$map$allele2[ind], res_sbayesr$A2))
-#
-# pred_sbayesr <- big_prodVec(G, res_sbayesr$A1Effect, ind.row = ind.test,
-#                             ind.col = ind)
-# cor(pred_sbayesr, y[ind.test])**2
+gctb <- "tmp-data/gctb_2.03beta_Linux/gctb"
+
+corr4gctb <- function(corr) {
+
+  corrT <- as(corr[], "dgTMatrix")
+
+  list_corr <- split(data.frame(i = corrT@i, x = corrT@x),
+                     factor(cols_along(corrT))[corrT@j + 1L])
+
+  binfile <- tempfile(tmpdir = "tmp-data", fileext = ".ldm.sparse.bin")
+  con <- file(binfile, open = "wb")
+  for (df in list_corr) {
+    writeBin(as.integer(df$i), con, size = 4)
+    writeBin(as.double (df$x), con, size = 4)
+  }
+  close(con)
+
+  af <- big_colstats(G, ind.row = ind.val, ncores = NCORES)$sum / (2 * length(ind.val))
+  info <- ukb$map %>%
+    transmute(Chrom = 22, ID = marker.ID, GenPos = 0, PhysPos = physical.pos,
+              A1 = allele1, A2 = allele2, A2Freq = af,
+              Index = seq_along(list_corr) - 1L,
+              WindStart = sapply(list_corr, function(df) df$i[1]),
+              WindEnd = sapply(list_corr, function(df) tail(df$i, 1)),
+              WindSize = sapply(list_corr, nrow),
+              WindWidth = -1,
+              N = length(ind.val),
+              SamplVar = -1,
+              LDsum = Matrix::colSums(corrT))
+
+  bigreadr::fwrite2(info, sub("\\.bin$", ".info", binfile), sep = " ")
+  sub("\\.bin$", "", binfile)
+}
 
 
-#### Run PRS-CS -> do not run because not enough variants matched with their LD ref ####
+run_sbayesr <- function(df_beta, corr) {
 
-# run_prscs <- function(df_beta) {
-#
-#   tmp <- tempfile(tmpdir = "tmp-data", fileext = ".txt")
-#   df_beta %>%
-#     bind_cols(data$map) %>%
-#     transmute(SNP = rsid, A1 = allele1, A2 = allele2,
-#               BETA = beta, P = 10^-lpval) %>%
-#     bigreadr::fwrite2(tmp, sep = "\t") %>%
-#     readLines(n = 5) %>%
-#     writeLines()
-#
-#   on.exit(file.remove(tmp), add = TRUE)
-#
-#   prefix <- paste0("tmp-data/TMP_PRSCS", ic)
-#
-#   PHI <- c(NA, 10^(-4:0))
-#   prscs <- "PRScs/PRScs.py"
-#   for (phi in PHI) {
-#     system(glue::glue(
-#       "OMP_NUM_THREADS=", NCORES[[1]],
-#       " python3 {prscs}",
-#       " --ref_dir=ldblk_1kg_eur",
-#       " --bim_prefix=tmp-data/simu_chr22",
-#       " --sst_file={tmp}",
-#       " --n_gwas={max(df_beta$n_eff)}",
-#       if (is.na(phi)) "" else " --phi={phi}",
-#       " --chrom=22",
-#       " --out_dir={prefix}"
-#     ))
-#   }
-#   on.exit(unlink(paste0(prefix, "*")), add = TRUE)
-#
-#   get_pred <- function(phi) {
-#     file <- paste0(prefix, "_pst_eff_a1_b0.5_phi", phi, "_chr22.txt")
-#     res <- bigreadr::fread2(file)
-#     betas <- rep(0, ncol(G))
-#     betas[match(res$V2, data$map$rsid)] <- res$V6
-#     big_prodVec(G, betas, ncores = NCORES)
-#   }
-#
-#   all_pred <- sapply(sprintf("%.0e", PHI[-1]), get_pred)
-#   ind.best <- which.max(apply(all_pred[ind.val, ], 2, cor, y = y[ind.val]))
-#   pred_prscs <- all_pred[ind.test, ind.best]
-#   print(r21 <- cor(pred_prscs, y[ind.test])**2)
-#
-#   pred_prscs_auto <- get_pred("auto")[ind.test]
-#   print(r22 <- cor(pred_prscs_auto, y[ind.test])**2)
-#
-#   c(r21, r22)
-# }
+  # LDSc reg
+  corr0 <- readRDS("tmp-data/corr0_simu_val.rds")
+  print(ldsc <- snp_ldsc2(corr0, df_beta))
+  h2_est <- ldsc[["h2"]]
 
-# prscs <- run_prscs(df_beta)
-# mis_prscs <- run_prscs(df_beta2)
+  af_gwas <- big_colstats(G, ind.row = ind.gwas, ncores = NCORES)$sum / (2 * length(ind.gwas))
+
+  tmp <- tempfile(tmpdir = "tmp-data", fileext = ".ma")
+  on.exit(file.remove(tmp), add = TRUE)
+
+  library(dplyr)
+  df_beta %>%
+    bind_cols(ukb$map) %>%
+    transmute(SNP = marker.ID, A1 = allele1, A2 = allele2, freq = af_gwas, b = beta, se = beta_se,
+              p = pchisq((beta / beta_se)^2, df = 1, lower.tail = FALSE), N = n_eff) %>%
+    bigreadr::fwrite2(tmp, sep = " ") %>%
+    readLines(n = 5) %>%
+    writeLines()
+
+  prefix <- tempfile(tmpdir = "tmp-data")
+  on.exit(unlink(paste0(prefix, "*")), add = TRUE)
+
+  if (inherits(corr, "SFBM")) {
+    prefix_corr <- corr4gctb(corr)
+    on.exit(file.remove(paste0(prefix_corr, c(".bin", ".info"))), add = TRUE)
+  } else {
+    prefix_corr <- corr
+  }
+
+  system(glue::glue(
+    gctb,
+    " --ldm {prefix_corr}",
+    " --gwas-summary {tmp}",
+    " --sbayes R",
+    " --pi 0.95,0.02,0.02,0.01",
+    " --gamma 0.0,0.01,0.1,1",
+    " --hsq {h2_est}",
+    " --chain-length 5000 --burn-in 1000",
+    " --out {prefix} --out-freq 200 --no-mcmc-bin"
+  ))  # 40000 SNPs on 1 chromosomes are included.
+
+  tryCatch({
+    res_sbayesr <- bigreadr::fread2(paste0(prefix, ".snpRes"))
+
+    stopifnot(all.equal(ukb$map$marker.ID, res_sbayesr$Name))
+    stopifnot(all.equal(ukb$map$allele1,   res_sbayesr$A1))
+    stopifnot(all.equal(ukb$map$allele2,   res_sbayesr$A2))
+
+    pred_sbayesr <- big_prodVec(G, res_sbayesr$A1Effect, ind.row = ind.test)
+    cor(pred_sbayesr, y[ind.test])**2
+
+  }, error = function(e) 0)
+}
+
+
+#### Run PRS-CS-auto ####
+
+run_prscs <- function(df_beta, corr = NULL) {
+
+  tmp <- tempfile(tmpdir = "tmp-data", fileext = ".txt")
+  df_beta %>%
+    transmute(SNP = ukb$map$marker.ID, A1 = "A", A2 = "C", BETA = beta,
+              P = pchisq((beta / beta_se)^2, df = 1, lower.tail = FALSE)) %>%
+    bigreadr::fwrite2(tmp, sep = "\t") %>%
+    readLines(n = 5) %>%
+    writeLines()
+
+  on.exit(file.remove(tmp), add = TRUE)
+
+  prefix <- tempfile(tmpdir = "tmp-data")
+
+  dir <- `if`(is.null(corr), "ldblk_ukbb_simu", "ldblk_ukbb_simu_altpop")
+
+  prscs <- "PRScs/PRScs.py"
+  system(glue::glue(
+    "OMP_NUM_THREADS=", NCORES[[1]],
+    " python3 {prscs}",
+    " --ref_dir=tmp-data/{dir}",
+    " --bim_prefix=tmp-data/{dir}/for_prscs",
+    " --sst_file={tmp}",
+    " --n_gwas={as.integer(max(df_beta$n_eff))}",
+    " --chrom=22",
+    " --n_iter=600 --n_burnin=300",
+    " --out_dir={prefix}"
+  ))
+
+  res_file <- paste0(prefix, "_pst_eff_a1_b0.5_phiauto_chr22.txt")
+  on.exit(file.remove(res_file), add = TRUE)
+
+  res <- bigreadr::fread2(res_file)
+  stopifnot(identical(res$V2, ukb$map$marker.ID))
+  pred_prscs_auto <- big_prodVec(G, res$V6, ind.row = ind.test, ncores = NCORES)
+  print(cor(pred_prscs_auto, y[ind.test])**2)
+}

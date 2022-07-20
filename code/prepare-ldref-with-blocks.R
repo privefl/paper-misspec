@@ -1,69 +1,59 @@
-library(future.batchtools)
-plan(batchtools_slurm(resources = list(
-  t = "12:00:00", c = 6, mem = "125g",
-  name = basename(rstudioapi::getSourceEditorContext()$path))))
+library(bigsnpr)
+library(furrr)
+plan("multisession", workers = 6)
 
 bigassertr::assert_dir("ldref")
 
-all_final_grp <- furrr::future_map_dfr(1:22, function(chr) {
+all_final_grp <- future_map_dfr(1:22, function(chr) {
 
   corr0 <- readRDS(paste0("../paper-ldpred2/ld-ref/LD_chr", chr, ".rds"))
   dim(corr0)
 
-  library(bigsnpr)
-  library(furrr)
-  all_splits <- runonce::save_run({
-
-    plan("multisession", workers = 5)
-    options(future.globals.maxSize = 10e9)
-
-    SEQ <- round(seq_log(1000 + ncol(corr0) / 50,
-                         5000 + ncol(corr0) / 10,
-                         length.out = 10))
-
-    splits <- future_map_dfr(SEQ, function(max_size) {
-      res <- snp_ldsplit(corr0, thr_r2 = 0.02, min_size = 100,
-                         max_size = max_size, max_K = 200)
-      res$max_size <- max_size
-      res
-    })
-  }, file = paste0("tmp-data/split_ldref_chr", chr, ".rds"))
-
-
-  library(ggplot2)
-  qplot(data = all_splits, perc_kept, cost, color = as.factor(max_size)) +
-    theme_bw(12) +
-    theme(legend.position = "top") + guides(colour = guide_legend(nrow = 1)) +
-    labs(y = "Sum of squared correlations outside blocks (log-scale)",
-         x = "% of non-zero values kept", color = "Maximum block size") +
-    ylim(0, min(quantile(all_splits$cost, 0.6), 200)) +
-    geom_vline(xintercept = 0.6, linetype = 3) +
-    scale_x_continuous(breaks = seq(0, 1, by = 0.2))
-
+  # find nearly independent LD blocks
+  m <- ncol(corr0)
+  (SEQ <- round(seq_log(m / 30, m / 5, length.out = 20)))
+  splits <- snp_ldsplit(corr0, thr_r2 = 0.02, min_size = 50, max_size = SEQ, max_r2 = 0.1)
 
   library(dplyr)
-  final_split <- all_splits %>%
-    filter(perc_kept < `if`(chr == 6, 0.7, 0.6)) %>%
-    arrange(cost) %>%
-    slice(1)
+  best_split <- splits %>%
+    arrange(cost2 * (5 + cost)) %>%  # removed the sqrt() because costs were too high
+    print() %>%
+    slice(1) %>%
+    print()
 
-  final_grp <- final_split$block_num[[1]]
+  (all_size <- best_split$all_size[[1]])
+  best_grp <- rep(seq_along(all_size), all_size)
 
   corr0T <- as(corr0, "dgTMatrix")
-  corr0T@x <- ifelse(final_grp[corr0T@i + 1L] == final_grp[corr0T@j + 1L], corr0T@x, 0)
+  corr0T@x <- ifelse(best_grp[corr0T@i + 1L] == best_grp[corr0T@j + 1L], corr0T@x, 0)
 
-  new_corr0 <- runonce::save_run(
-    as(Matrix::drop0(corr0T), "symmetricMatrix"),
-    file = paste0("ldref/LD_with_blocks_chr", chr, ".rds")
-  )
+  corr0T %>%
+    Matrix::drop0() %>%
+    as("symmetricMatrix") %>%
+    saveRDS(file = paste0("ldref/LD_with_blocks_chr", chr, ".rds"), version = 2)
 
-  final_split
-})
-# <20 min after chr6
+  best_split
+}, .options = furrr_options(scheduling = FALSE))
 
 plot(all_final_grp$n_block)
 plot(all_final_grp$cost)
+plot(all_final_grp$cost2)
 
 sum(file.size(paste0("ldref/LD_with_blocks_chr", 1:22, ".rds"))) /
   sum(file.size(paste0("../paper-ldpred2/ld-ref/LD_chr", 1:22, ".rds")))
-# 60.6%
+# 84%
+
+# Add positions for different genome builds
+liftOver <- runonce::download_file(
+  "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/liftOver", "tmp-data")
+map <- readRDS(url("https://ndownloader.figshare.com/files/25503788"))
+sum(is.na(map))  # before: 709 (positions not matched)
+map$pos_hg17 <- snp_modifyBuild(map, liftOver, from = "hg19", to = "hg17")$pos
+map$pos_hg18 <- snp_modifyBuild(map, liftOver, from = "hg19", to = "hg18")$pos
+map$pos_hg38 <- snp_modifyBuild(map, liftOver, from = "hg19", to = "hg38")$pos
+sum(is.na(map))  # after: 909 (positions not matched with extra QC)
+
+block_sizes <- unlist(all_final_grp$all_size)
+map$group_id <- rep(seq_along(block_sizes), block_sizes)
+saveRDS(map, "ldref/map.rds", version = 2)
+system("zip -r -0 ldref_with_blocks.zip ldref/*")

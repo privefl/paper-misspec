@@ -1,11 +1,7 @@
-
-bigassertr::assert_dir("results")
-bigassertr::assert_dir("log")
-
 library(dplyr)
-files <- tibble(pheno = c(paste0("t1d_", c("affy", "illu")),
-                          paste0("brca_", c("onco", "icogs")),
-                          "cad", "prca", "mdd")) %>%
+grid <- tibble(pheno = c(paste0("t1d_", c("affy", "illu")),
+                         paste0("brca_", c("onco", "icogs")),
+                         "cad", "prca", "mdd")) %>%
   mutate(whichN = NA) %>%
   add_row(pheno = "vitaminD", whichN = c("trueN", "maxN")) %>%
   tidyr::expand_grid(
@@ -19,7 +15,10 @@ plan(batchtools_slurm(resources = list(
   t = "12:00:00", c = NCORES + 2, mem = "120g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
-furrr::future_pwalk(files, function(pheno, whichN, qc, name_corr) {
+bigassertr::assert_dir("results")
+bigassertr::assert_dir("results/sumstats")
+
+furrr::future_pwalk(grid, function(pheno, whichN, qc, name_corr) {
 
   # pheno <- "vitaminD"
   # whichN <- "trueN"
@@ -32,7 +31,7 @@ furrr::future_pwalk(files, function(pheno, whichN, qc, name_corr) {
     sumstats$n_eff <- max(sumstats$n_eff)
 
   suffix_N <- `if`(is.na(whichN), "", paste0("_", whichN))
-  basename <- file.path("results", sub("\\.rds$", suffix_N, basename(gwas_file)))
+  basename <- file.path("results/sumstats", sub("\\.rds$", suffix_N, basename(gwas_file)))
   if (grepl("blocks", name_corr, fixed = TRUE))
     basename <- paste0(basename, "_adj_with_blocks")
 
@@ -113,4 +112,62 @@ furrr::future_pwalk(files, function(pheno, whichN, qc, name_corr) {
                      vec_p_init = seq_log(1e-4, 0.5, 30),
                      allow_jump_sign = FALSE, shrink_corr = 0.95),
     file = paste0(basename, "_LDpred2-auto-rob.rds"))
+})
+
+
+#### Run PRS-CS ####
+
+library(dplyr)
+grid <- tibble(pheno = c(paste0("t1d_", c("affy", "illu")),
+                         paste0("brca_", c("onco", "icogs")),
+                         "cad", "prca", "mdd", "vitaminD")) %>%
+  tidyr::expand_grid(qc = c("noqc", "qc1", "qc2"), chr = 1:22) %>%
+  filter(!file.exists(paste0("results_prscs/sumstats/", pheno, "_", qc, "_chr", chr, ".rds"))) %>%
+  print()
+
+library(future.batchtools)
+NCORES <- 10
+plan(batchtools_slurm(workers = 1000, resources = list(
+  t = "12:00:00", c = NCORES + 1, mem = "50g",
+  name = basename(rstudioapi::getSourceEditorContext()$path))))
+
+bigassertr::assert_dir("results_prscs")
+bigassertr::assert_dir("results_prscs/sumstats")
+
+furrr::future_pwalk(grid, function(pheno, qc, chr) {
+
+  # pheno <- "vitaminD"
+  # qc <- "qc1"
+  # chr <- 22
+
+  # prepare sumstats file
+  sumstats <- readRDS(paste0("data/sumstats/", pheno, "_", qc, ".rds"))
+  sumstats_file <- tempfile(tmpdir = "tmp-data", fileext = ".txt")
+  on.exit(file.remove(sumstats_file), add = TRUE)
+  sumstats %>%
+    transmute(SNP = paste0("snp", `_NUM_ID_`), A1 = "A", A2 = "C", BETA = beta,
+              P = pchisq((beta / beta_se)^2, df = 1, lower.tail = FALSE)) %>%
+    bigreadr::fwrite2(sumstats_file, sep = "\t") %>%
+    readLines(n = 5) %>%
+    writeLines()
+
+  # run PRS-CS for one chromosome
+  dir <- "data/corr/ukbb_for_prscs"
+  prefix <- tempfile(tmpdir = "tmp-data")
+  res_file <- paste0(prefix, "_pst_eff_a1_b0.5_phiauto_chr", chr, ".txt")
+  on.exit(file.remove(res_file), add = TRUE)
+
+  system(glue::glue(
+    "OMP_NUM_THREADS=", NCORES,
+    " python3 PRScs/PRScs.py",
+    " --ref_dir={dir}",
+    " --bim_prefix={dir}/for_prscs",
+    " --sst_file={sumstats_file}",
+    " --n_gwas={as.integer(max(sumstats$n_eff))}",
+    " --chrom={chr}",
+    " --out_dir={prefix}"
+  ))
+
+  saveRDS(bigreadr::fread2(res_file),
+          paste0("results_prscs/sumstats/", pheno, "_", qc, "_chr", chr, ".rds"))
 })

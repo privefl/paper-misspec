@@ -1,7 +1,3 @@
-
-bigassertr::assert_dir("results_BBJ")
-bigassertr::assert_dir("log")
-
 ALL_CORR <- c(
   corr_JPN               = "data/corr_JPN/chr",
   corr_JPN_with_blocks   = "data/corr_JPN/adj_with_blocks_chr",
@@ -12,28 +8,35 @@ ALL_CORR <- c(
 )
 
 library(dplyr)
-files <- tibble(pheno = c("height", "systolic_bp", "hdl_cholesterol", "bmi")) %>%
+grid <- tibble(pheno = c("height", "systolic_bp", "hdl_cholesterol", "bmi")) %>%
   tidyr::expand_grid(name_corr = names(ALL_CORR)) %>%
-  filter(!file.exists(paste0("results_BBJ/", pheno, "_", name_corr,
+  filter(!file.exists(paste0("results/sumstats_BBJ/", pheno, "_", name_corr,
                              "_LDpred2-auto-rob.rds"))) %>%
   print()
 
 library(future.batchtools)
-NCORES <- 30
+NCORES <- 14
 plan(batchtools_slurm(resources = list(
-  t = "12:00:00", c = NCORES + 2, mem = "120g",
+  t = "12:00:00", c = NCORES + 2, mem = "60g",
   name = basename(rstudioapi::getSourceEditorContext()$path))))
 
-furrr::future_pwalk(files, function(pheno, qc, name_corr) {
+bigassertr::assert_dir("results/sumstats_BBJ")
 
-  # pheno <- "height"
-  # name_corr <- "corr_JPN"
-
-  sumstats <- readRDS(paste0("data/sumstats_BBJ/", pheno, ".rds"))
-  basename <- paste0("results_BBJ/", pheno, "_", name_corr)
+furrr::future_pwalk(grid, function(pheno, qc, name_corr) {
 
   library(bigsnpr)
-  CHR <- snp_attach("data/UKBB_HM3_val.rds")$map$chromosome
+  corr_path <- ALL_CORR[[name_corr]]
+  grp <- readRDS(file.path(dirname(corr_path), "all_final_grp.rds"))
+  if (is.null(grp$ind)) {
+    CHR <- snp_attach("data/UKBB_HM3_val.rds")$map$chromosome
+    ind_keep <- split(seq_along(CHR), CHR)
+  } else {
+    ind_keep <- grp$ind
+  }
+
+  sumstats <- readRDS(paste0("data/sumstats_BBJ/", pheno, ".rds")) %>%
+    filter(`_NUM_ID_` %in% unlist(ind_keep))
+  basename <- paste0("results/sumstats_BBJ/", pheno, "_", name_corr)
 
   tmp <- tempfile(tmpdir = "tmp-data/sfbm/")
   on.exit(file.remove(paste0(tmp, ".sbk")), add = TRUE)
@@ -47,9 +50,9 @@ furrr::future_pwalk(files, function(pheno, qc, name_corr) {
     ## indices in 'G'
     ind.chr2 <- sumstats$`_NUM_ID_`[ind.chr]
     ## indices in 'corr'
-    ind.chr3 <- match(ind.chr2, which(CHR == chr))
+    ind.chr3 <- match(ind.chr2, ind_keep[[chr]])
 
-    corr0 <- readRDS(paste0(ALL_CORR[[name_corr]], chr, ".rds"))
+    corr0 <- readRDS(paste0(corr_path, chr, ".rds"))
     ld_chr <- Matrix::colSums(corr0^2)
     df_beta_chr <- sumstats[ind.chr, c("beta", "beta_se", "n_eff")]
 
@@ -106,4 +109,59 @@ furrr::future_pwalk(files, function(pheno, qc, name_corr) {
                      vec_p_init = seq_log(1e-4, 0.5, 30),
                      allow_jump_sign = FALSE, shrink_corr = 0.95),
     file = paste0(basename, "_LDpred2-auto-rob.rds"))
+})
+
+
+#### Run PRS-CS ####
+
+library(dplyr)
+ALL_CORR <- c(
+  corr_JPN   = "data/corr_JPN/ukbb_for_prscs/ldblk_ukbb_chr1.hdf5",
+  corr_1000G = "data/corr_1000G_EAS/1kg_for_prscs/ldblk_1kg_chr1.hdf5",
+  corr_UKBB  = "data/corr_UKBB_EAS/ukbb_for_prscs/ldblk_ukbb_chr1.hdf5"
+)
+grid <- tibble(pheno = c("height", "systolic_bp", "hdl_cholesterol", "bmi")) %>%
+  tidyr::expand_grid(name_corr = names(ALL_CORR), chr = 1:22) %>%
+  filter(!file.exists(paste0("results_prscs/sumstats_BBJ/", pheno, "_", name_corr, "_chr", chr, ".rds"))) %>%
+  print()
+
+library(future.batchtools)
+NCORES <- 10
+plan(batchtools_slurm(workers = 1000, resources = list(
+  t = "12:00:00", c = NCORES + 1, mem = "50g",
+  name = basename(rstudioapi::getSourceEditorContext()$path))))
+
+bigassertr::assert_dir("results_prscs/sumstats_BBJ")
+
+furrr::future_pwalk(grid, function(pheno, name_corr, chr) {
+
+  sumstats <- readRDS(paste0("data/sumstats_BBJ/", pheno, ".rds"))
+  sumstats_file <- tempfile(tmpdir = "tmp-data", fileext = ".txt")
+  on.exit(file.remove(sumstats_file), add = TRUE)
+  sumstats %>%
+    transmute(SNP = paste0("snp", `_NUM_ID_`), A1 = "A", A2 = "C", BETA = beta,
+              P = pchisq((beta / beta_se)^2, df = 1, lower.tail = FALSE)) %>%
+    bigreadr::fwrite2(sumstats_file, sep = "\t") %>%
+    readLines(n = 5) %>%
+    writeLines()
+
+  # run PRS-CS for one chromosome
+  dir <- dirname(ALL_CORR[name_corr])
+  prefix <- tempfile(tmpdir = "tmp-data")
+  res_file <- paste0(prefix, "_pst_eff_a1_b0.5_phiauto_chr", chr, ".txt")
+  on.exit(file.remove(res_file), add = TRUE)
+
+  system(glue::glue(
+    "OMP_NUM_THREADS=", NCORES,
+    " python3 PRScs/PRScs.py",
+    " --ref_dir={dir}",
+    " --bim_prefix={dir}/for_prscs",
+    " --sst_file={sumstats_file}",
+    " --n_gwas={as.integer(max(sumstats$n_eff))}",
+    " --chrom={chr}",
+    " --out_dir={prefix}"
+  ))
+
+  saveRDS(bigreadr::fread2(res_file),
+          paste0("results_prscs/sumstats_BBJ/", pheno, "_", name_corr, "_chr", chr, ".rds"))
 })
